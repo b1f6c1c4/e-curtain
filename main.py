@@ -95,7 +95,7 @@ class S(BaseHTTPRequestHandler):
         self.wfile.write(content.encode("utf-8"))
 
 
-def run(server_class=HTTPServer, handler_class=S, addr="localhost", port=8000):
+def run(server_class=HTTPServer, handler_class=S, addr="localhost", port=80):
     server_address = (addr, port)
     httpd = server_class(server_address, handler_class)
 
@@ -104,4 +104,4 @@ def run(server_class=HTTPServer, handler_class=S, addr="localhost", port=8000):
 
 
 if __name__ == "__main__":
-    run(addr="0.0.0.0", port=8000)
+    run()
