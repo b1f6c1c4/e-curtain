@@ -6,6 +6,30 @@ import datetime
 import time
 import os
 import threading
+import RPi.GPIO as GPIO
+from time import sleep
+
+def goLeft(t):
+    sleep(t * 60)
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(7, GPIO.OUT)
+    p = GPIO.PWM(7, 1 / 3000e-6)
+    p.start(75)
+    sleep(10.0)
+    p.stop()
+    GPIO.output(7, GPIO.LOW)
+    GPIO.cleanup()
+
+def goRight(t):
+    sleep(t * 60)
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(7, GPIO.OUT)
+    p = GPIO.PWM(7, 1 / 3000e-6)
+    p.start(25)
+    sleep(10.7)
+    p.stop()
+    GPIO.output(7, GPIO.LOW)
+    GPIO.cleanup()
 
 def die():
     time.sleep(1)
@@ -53,9 +77,13 @@ class S(BaseHTTPRequestHandler):
         if self.path == "/open":
             tv = self.postData()
             content = "opening %d mins later" % tv
+            th = threading.Thread(target=goLeft, args=(tv,))
+            th.start()
         elif self.path == "/close":
             tv = self.postData()
             content = "closing %d mins later" % tv
+            th = threading.Thread(target=goRight, args=(tv,))
+            th.start()
         elif self.path == "/cancel":
             content = "Cancelling"
             th = threading.Thread(target=die)
