@@ -12,23 +12,23 @@ from time import sleep
 def goLeft(t):
     sleep(t * 60)
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(7, GPIO.OUT)
-    p = GPIO.PWM(7, 1 / 3000e-6)
+    GPIO.setup(3, GPIO.OUT)
+    p = GPIO.PWM(3, 1 / 3000e-6)
     p.start(75)
     sleep(9.5)
     p.stop()
-    GPIO.output(7, GPIO.LOW)
+    GPIO.output(3, GPIO.LOW)
     GPIO.cleanup()
 
 def goRight(t):
     sleep(t * 60)
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(7, GPIO.OUT)
-    p = GPIO.PWM(7, 1 / 3000e-6)
+    GPIO.setup(3, GPIO.OUT)
+    p = GPIO.PWM(3, 1 / 3000e-6)
     p.start(25)
     sleep(7.9)
     p.stop()
-    GPIO.output(7, GPIO.LOW)
+    GPIO.output(3, GPIO.LOW)
     GPIO.cleanup()
 
 def die():
