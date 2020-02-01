@@ -15,7 +15,7 @@ def goLeft(t):
     GPIO.setup(3, GPIO.OUT)
     p = GPIO.PWM(3, 1 / 3000e-6)
     p.start(75)
-    sleep(9.5)
+    sleep(8.0)
     p.stop()
     GPIO.output(3, GPIO.LOW)
     GPIO.cleanup()
@@ -77,12 +77,12 @@ class S(BaseHTTPRequestHandler):
         if self.path == "/open":
             tv = self.postData()
             content = "opening %d mins later" % tv
-            th = threading.Thread(target=goLeft, args=(tv,))
+            th = threading.Thread(target=goRight, args=(tv,))
             th.start()
         elif self.path == "/close":
             tv = self.postData()
             content = "closing %d mins later" % tv
-            th = threading.Thread(target=goRight, args=(tv,))
+            th = threading.Thread(target=goLeft, args=(tv,))
             th.start()
         elif self.path == "/cancel":
             content = "Cancelling"
