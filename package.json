@@ -1,0 +1,21 @@
+{
+  "name": "e-curtain",
+  "version": "0.0.0",
+  "description": "Minimalistic IoT on Raspberry Pi",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/b1f6c1c4/e-curtain.git"
+  },
+  "keywords": [
+    "iot",
+    "raspberry-pi",
+    "smarthome"
+  ],
+  "author": "b1f6c1c4",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/b1f6c1c4/e-curtain/issues"
+  },
+  "homepage": "https://github.com/b1f6c1c4/e-curtain#readme"
+}
