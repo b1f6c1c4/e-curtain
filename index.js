@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const dayjs = require('dayjs');
@@ -12,7 +13,7 @@ const goRight = () => {
   if (process.env.DEBUG) {
     console.log('>>>>>>>>');
   } else {
-    spawn('./main.py', ['right']);
+    spawn(path.join(__dirname, 'main.py'), ['right']);
   }
 };
 
@@ -20,7 +21,7 @@ const goLeft = () => {
   if (process.env.DEBUG) {
     console.log('<<<<<<<<');
   } else {
-    spawn('./main.py', ['left']);
+    spawn(path.join(__dirname, 'main.py'), ['left']);
   }
 };
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import sys
 import RPi.GPIO as GPIO
 from time import sleep
 
@@ -24,7 +25,9 @@ def goRight():
     GPIO.cleanup()
 
 if __name__ == "__main__":
-    if sys.argv[0] == "left":
+    if sys.argv[1] == "left":
         goLeft()
-    elif sys.argv[0] == "right":
+    elif sys.argv[1] == "right":
         goRight()
+    else:
+        print("what are you trying to do?")
