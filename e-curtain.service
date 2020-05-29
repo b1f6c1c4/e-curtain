@@ -9,7 +9,7 @@ Restart=always
 RestartSec=1
 User=root
 WorkingDirectory=/home/pi/e-curtain/
-ExecStart=/usr/bin/python3 main.py
+ExecStart=/usr/bin/node index.js
 
 [Install]
 WantedBy=multi-user.target

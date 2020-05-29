@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "Minimalistic IoT on Raspberry Pi",
   "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/b1f6c1c4/e-curtain.git"
@@ -17,5 +20,10 @@
   "bugs": {
     "url": "https://github.com/b1f6c1c4/e-curtain/issues"
   },
-  "homepage": "https://github.com/b1f6c1c4/e-curtain#readme"
+  "homepage": "https://github.com/b1f6c1c4/e-curtain#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dayjs": "^1.8.28",
+    "express": "^4.17.1"
+  }
 }
