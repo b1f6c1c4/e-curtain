@@ -13,7 +13,7 @@ const goRight = () => {
   if (process.env.DEBUG) {
     console.log('>>>>>>>>');
   } else {
-    spawn(path.join(__dirname, 'main.py'), ['right']);
+    spawn(path.join(__dirname, 'curtain.py'), ['right']);
   }
 };
 
@@ -21,7 +21,7 @@ const goLeft = () => {
   if (process.env.DEBUG) {
     console.log('<<<<<<<<');
   } else {
-    spawn(path.join(__dirname, 'main.py'), ['left']);
+    spawn(path.join(__dirname, 'curtain.py'), ['left']);
   }
 };
 
