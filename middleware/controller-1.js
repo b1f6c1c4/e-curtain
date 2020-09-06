@@ -122,5 +122,5 @@ setInterval(() => {
 }, 1000);
 
 const port = process.env.DEBUG ? 3000 : 80;
-console.log(`Starting httpd server on 0.0.0.0:${port}`)
+console.log(`Listening on 0.0.0.0:${port}`)
 app.listen(port);

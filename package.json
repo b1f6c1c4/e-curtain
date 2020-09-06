@@ -22,8 +22,10 @@
   },
   "homepage": "https://github.com/b1f6c1c4/e-curtain#readme",
   "dependencies": {
+    "axios": "^0.20.0",
     "body-parser": "^1.19.0",
-    "dayjs": "^1.8.28",
-    "express": "^4.17.1"
+    "dayjs": "^1.8.35",
+    "express": "^4.17.1",
+    "shelljs": "^0.8.4"
   }
 }
