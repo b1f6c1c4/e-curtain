@@ -1,5 +1,6 @@
 const path = require('path');
-const axios = require('axios');
-const shell = require('shelljs');
+const sensor = require('../backend/sensor');
 
-shell.exec(path.join(__dirname, '..', 'backend', 'sensor.py'));
+const port = process.env.DEBUG ? 3000 : 80;
+
+sensor(1, `controller-0:${port}`);
