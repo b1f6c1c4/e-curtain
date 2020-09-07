@@ -1,6 +1,9 @@
 const path = require('path');
 const axios = require('axios').default;
 const shell = require('shelljs');
+const EventEmitter = require('events');
+
+EventEmitter.defaultMaxListeners = 30;
 
 const interval = 100;
 

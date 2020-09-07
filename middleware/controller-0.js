@@ -123,6 +123,9 @@ setInterval(async () => {
   s[0] = await getLast(0);
   s[1] = await getAverage(1, since) || await getLast(1);
   s[2] = await getAverage(2, since) || await getLast(2);
+  if (!(s[0] && s[1] && s[2])) {
+    return;
+  }
   const res = core.tick(s);
   if (res.fan !== ores.fan) {
     console.log(`Set fan to ${res.fan}`);
