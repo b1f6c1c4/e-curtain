@@ -15,7 +15,7 @@ function measure(location, endpoint) {
     const [rh, t] = stdout.split('\n').map((s) => +s);
     axios({
       method: 'post',
-      url: `http://${host}/sensor`,
+      url: `http://${endpoint}/sensor`,
       data: { location, rh, t },
     });
   });

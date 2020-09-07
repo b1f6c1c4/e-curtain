@@ -6,14 +6,14 @@ const axios = require('axios').default;
 const interval = 30 * 60e3;
 const config = JSON5.parse(fs.readFileSync(path.join(__dirname, '..', 'weather.json5'), 'utf8'));
 
-async function measure() {
+async function measure(endpoint) {
   const res = await axios({
     method: 'get',
     url: 'https://community-open-weather-map.p.rapidapi.com/weather',
-    header: {
+    headers: {
       'X-RapidAPI-Key': config.key,
     },
-    param: {
+    params: {
       lat: config.lat,
       lon: config.lon,
     },
@@ -24,19 +24,27 @@ async function measure() {
     console.error(res.data);
     return;
   }
+  if (process.env.DEBUG === 'weather') {
+    console.error(res.headers);
+    console.error(res.data);
+  }
   const { sunrise, sunset } = res.data.sys;
   const sun = sunrise * 1000 <= +new Date() && sunset * 1000 >= +new Date();
   await axios({
     method: 'post',
-    url: `http://${host}/weather`,
+    url: `http://${endpoint}/weather`,
     data: {
       location: 0,
       rh: res.data.main.humidity,
-      t: res.data.main.temp,
+      t: res.data.main.temp - 273.15,
       wind: res.data.wind.speed,
       sun,
     },
   });
 }
 
-module.exports = () => { setInterval(measure, interval); };
+module.exports = (endpoint) => {
+  if (process.env.DEBUG === 'weather')
+    measure(endpoint);
+  setInterval(measure, interval, endpoint);
+};

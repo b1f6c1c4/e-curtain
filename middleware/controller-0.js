@@ -107,5 +107,7 @@ app.listen(port);
 
 if (!process.env.DEBUG) {
   rf(`controller-0:${port}`);
+  weather(`controller-0:${port}`);
+} else {
+  weather(`localhost:${port}`);
 }
-weather(`controller-0:${port}`);
