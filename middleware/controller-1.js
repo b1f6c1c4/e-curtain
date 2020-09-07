@@ -1,15 +1,16 @@
 const path = require('path');
 const express = require('express');
-const bodyParser = require('body-parser');
 const sensor = require('../backend/sensor');
 const curtain = require('../backend/curtain');
 
-app.post('/open', bodyParser.text(), getDelay, (req, res) => {
+const app = express();
+
+app.post('/open', (req, res) => {
   curtain(true);
   res.status(204).send();
 });
 
-app.post('/close', bodyParser.text(), getDelay, (req, res) => {
+app.post('/close', (req, res) => {
   curtain(false);
   res.status(204).send();
 });
@@ -20,8 +21,6 @@ app.listen(port);
 
 if (!process.env.DEBUG) {
   sensor(1, 'controller-0:80');
-  rf('controller-0:80');
 } else {
   sensor(1, 'localhost:3000');
-  rf('localhost:3000');
 }

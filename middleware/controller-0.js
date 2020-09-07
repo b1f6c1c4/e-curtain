@@ -25,6 +25,7 @@ const app = express();
 dayjs.extend(isoWeek);
 
 app.post('/sensor', bodyParser.json(), (req, res) => {
+  console.log('Info: got sensor data');
   db.insert(req.body, (err, doc) => {
     if (err) {
       res.status(500).send(err);
@@ -38,6 +39,7 @@ app.post('/sensor', bodyParser.json(), (req, res) => {
 });
 
 app.post('/weather', bodyParser.json(), (req, res) => {
+  console.log('Info: got weather data');
   db.insert(req.body, (err, doc) => {
     if (err) {
       res.status(500).send(err);
@@ -52,6 +54,7 @@ app.post('/weather', bodyParser.json(), (req, res) => {
 
 let rfOld = null, rfT = null;
 app.post('/rf', bodyParser.json(), (req, res) => {
+  console.log('Info: got rf data');
   if (+new Date() - rfT > 3e3) {
     rfOld = null;
     rfT = null;
