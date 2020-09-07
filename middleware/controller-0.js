@@ -8,6 +8,7 @@ const Datastore = require('nedb');
 const servo = require('../backend/servo');
 const rf = require('../backend/rf');
 const weather = require('../backend/weather');
+const core = require('./core');
 
 const filename = path.join(__dirname, '..', 'e-curtain.db')
 const db = new Datastore({
@@ -49,25 +50,6 @@ app.post('/weather', bodyParser.json(), (req, res) => {
   });
 });
 
-// List of states
-// b : Balanced
-// w : Working
-// wfc : Working, forced cooling
-// s0 : Pre-sleep
-// s0e : Pre-sleep, extended
-// s1 : Entering sleep
-// s1p2 : Sleep 20%
-// s1p2fh : Sleep 20%, forced heating
-// s1p4 : Sleep 40%
-// s1p4fh : Sleep 40%, forced heating
-// s1p6 : Sleep 60%
-// s1p6fh : Sleep 60%, forced heating
-// s1p8 : Sleep 80%
-// s1p8fh : Sleep 80%, forced heating
-// s2 : Exiting sleep
-let state;
-let vstate;
-
 let rfOld = null, rfT = null;
 app.post('/rf', bodyParser.json(), (req, res) => {
   if (+new Date() - rfT > 3e3) {
@@ -80,34 +62,135 @@ app.post('/rf', bodyParser.json(), (req, res) => {
     return;
   }
   rfOld = req.body.v;
-
   switch (req.body.v) {
-    case 8: // A: wake up
-      state = 'w';
-      vstate = true;
+    case 8:
+      core.command('A');
       break;
-    case 4: // B: go to bed, (re)start 8hr timer
-
-    case 2: // C: forced ventilation on/off
-      vstate = ~vstate;
+    case 4:
+      core.command('B');
       break;
-    case 1: // D: forced heating (when asleep) / cooling (when awake) on/off
+    case 2:
+      core.command('C');
+      break;
+    case 1:
+      core.command('D');
+      break;
     default:
       res.status(422).send();
       return;
   }
-
-  // TODO: actuator
-  console.log(`${state} ${vstate}`);
+  res.status(204).send();
 });
+
+let ores = {};
+core.init();
+setInterval(await () => {
+  const getLast = (location) => new Promise((resolve) => {
+    db.find({ location }).sort({ createdAt: -1 }).limit(1).exec((err, docs) => {
+      if (err) {
+        console.error(err);
+        resolve(null);
+      } else if (docs.length) {
+        resolve(docs[0]);
+      } else {
+        console.error(`Error: no sensor data found for ${location}`);
+        resolve(null);
+      }
+    });
+  });
+  const getAverage = (location, since) => new Promise((resolve) => {
+    db.find({ location, createdAt: { $gt: since } }).exec((err, docs) => {
+      if (err) {
+        console.error(err);
+        resolve(null);
+      } else if (docs.length) {
+        const res = { location, rh: 0, t: 0 };
+        docs.forEach(({ rh, t }) => { res.rh += rh; res.t += t; });
+        res.rh /= docs.length;
+        res.t /= docs.length;
+        resolve(res);
+      } else {
+        console.error(`Warning: no recent sensor data found for ${location}`);
+        resolve(null);
+      }
+    });
+  });
+  const s = [];
+  const since = +new Date() - 2 * 60e3;
+  s[0] = await getLast(0);
+  s[1] = await getAverage(1, since) || await getLast(1);
+  s[2] = await getAverage(2, since) || await getLast(2);
+  const res = core.tick(s);
+  if (res.fan !== ores.fan) {
+    console.log(`Set fan to ${res.fan}`);
+    // TODO: fan
+  }
+  if (res.windows !== ores.windows) {
+    console.log(`Set windows to ${res.windows}`);
+    // TODO: windows
+  }
+  if (res.curtain !== ores.curtain) {
+    console.log(`Set curtain to ${res.curtain}`);
+    if (!process.env.DEBUG) {
+      axios({
+        method: 'post',
+        url: `http://controller-1:80/${res.curtain ? 'open' : 'close'}`,
+      });
+    }
+  }
+  if (res.register !== ores.register) {
+    console.log(`Set register to ${res.register}`);
+    if (!process.env.DEBUG) {
+      servo(8, 180 - res.register * (180 - 85));
+    }
+  }
+  if (res.ac !== ores.ac || res.acFan !== ores.acFan) {
+    if (res.ac === +1) {
+      console.log(`Set ac to heat I`);
+      if (!process.env.DEBUG) {
+        servo(10, 30);
+      }
+    } else if (res.ac === +2) {
+      console.log(`Set ac to heat II`);
+      if (!process.env.DEBUG) {
+        servo(10, 0);
+      }
+    } else if (res.acFan === +1) {
+      console.log(`Set ac to fan I`);
+      if (!process.env.DEBUG) {
+        servo(10, 90);
+      }
+    } else if (res.acFan === +2) {
+      console.log(`Set ac to fan I`);
+      if (!process.env.DEBUG) {
+        servo(10, 120);
+      }
+    } else if (res.ac === -1) {
+      console.log(`Set ac to cool I`);
+      if (!process.env.DEBUG) {
+        servo(10, 150);
+      }
+    } else if (res.ac === -2) {
+      console.log(`Set ac to cool II`);
+      if (!process.env.DEBUG) {
+        servo(10, 180);
+      }
+    } else {
+      console.log(`Set ac to Off`);
+      if (!process.env.DEBUG) {
+        servo(10, 60);
+      }
+    }
+  }
+}, process.env.DEBUG ? 100 : 30000);
 
 const port = process.env.DEBUG ? 3000 : 80;
 console.log(`Listening on 0.0.0.0:${port}`)
 app.listen(port);
 
 if (!process.env.DEBUG) {
-  rf(`controller-0:${port}`);
-  weather(`controller-0:${port}`);
+  rf('controller-0:80');
+  weather('controller-0:80');
 } else {
-  weather(`localhost:${port}`);
+  weather('localhost:3000');
 }

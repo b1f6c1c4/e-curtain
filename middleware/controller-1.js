@@ -18,5 +18,10 @@ const port = process.env.DEBUG ? 3000 : 80;
 console.log(`Listening on 0.0.0.0:${port}`)
 app.listen(port);
 
-sensor(1, `controller-0:${port}`);
-rf(`controller-0:${port}`);
+if (!process.env.DEBUG) {
+  sensor(1, 'controller-0:80');
+  rf('controller-0:80');
+} else {
+  sensor(1, 'localhost:3000');
+  rf('localhost:3000');
+}

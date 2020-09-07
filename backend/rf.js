@@ -2,7 +2,7 @@ const path = require('path');
 const axios = require('axios').default;
 const shell = require('shelljs');
 
-const interval = 200;
+const interval = 100;
 
 let vo = 0;
 function measure(endpoint) {
