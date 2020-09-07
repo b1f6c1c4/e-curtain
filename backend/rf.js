@@ -9,7 +9,7 @@ const interval = 100;
 
 let vo = 0;
 function measure(endpoint) {
-  shell.exec(path.join(__dirname, 'rf.py'), (code, stdout, stderr) => {
+  shell.exec(path.join(__dirname, 'rf.py'), { silent: true }, (code, stdout, stderr) => {
     if (code) {
       console.error(`Warning: rf.py died with ${code}`);
     }
@@ -20,7 +20,7 @@ function measure(endpoint) {
     if (v && v != vo) {
       axios({
         method: 'post',
-        url: `http://${host}/rf`,
+        url: `http://${endpoint}/rf`,
         data: { v },
       });
     }

@@ -6,7 +6,7 @@ const interval = 60e3;
 
 function measure(location, endpoint) {
   console.log(`Info: measuring ${location} to ${endpoint}`);
-  shell.exec(path.join(__dirname, 'sensor.py'), (code, stdout, stderr) => {
+  shell.exec(path.join(__dirname, 'sensor.py'), { silent: true }, (code, stdout, stderr) => {
     if (code) {
       console.error(`Warning: sensor.py died with ${code}`);
     }
