@@ -29,7 +29,7 @@ module.exports = {
         break;
       case 'B': // go to bed, (re)start 8hr timer
         if (state.p !== undefined && state.p > 180) {
-          state = { s: 'sx', p: state.p - 60: true };
+          state = { s: 'sx', p: state.p - 60, v: true };
           nstate = { s: 's', p: state.p - 60 + 15, v: false };
           ddl = +new Date() + 15 * min;
         } else {
@@ -57,7 +57,7 @@ module.exports = {
         break;
     }
     if (state.v) vcnt = 0;
-    console.log(`${dayjs().toISOString()} Cmd: ${cmd}, state: ${state}, nstate: ${nstate}, ddl: ${ddl && dayjs(ddl).toISOString()}, vcnt: ${vcnt}`);
+    console.log(`${dayjs().toISOString()} Cmd: ${cmd}, state:`, state, `nstate:`, nstate, `ddl: ${ddl && dayjs(ddl).toISOString()}, vcnt: ${vcnt}`);
   },
   tick: (s) => {
     let novent = Math.abs(s[0].t - (s[1] + s[2]) / 2) > 5 + 5 * vcnt;
@@ -85,7 +85,7 @@ module.exports = {
             vcnt = 0;
           }
         }
-        console.log(`${dayjs().toISOString()} Tick, state: ${state}, nstate: ${nstate}, ddl: ${ddl && dayjs(ddl).toISOString()}, vcnt: ${vcnt}`);
+        console.log(`${dayjs().toISOString()} Tick, state:`, state, `nstate:`, nstate, `ddl: ${ddl && dayjs(ddl).toISOString()}, vcnt: ${vcnt}`);
       }
     }
 
@@ -127,15 +127,13 @@ module.exports = {
       case 'n':
       case 'nfc':
         k = 0;
-        tc = t[2].t;
         break;
       case 's':
       case 'sx':
         k = 1;
-        tc = t[1].t;
         break;
     }
-    const tc = k*t[1].t + (1-k)*t[2].t;
+    const tc = k*s[1].t + (1-k)*s[2].t;
     let denoised;
     switch (state.s) {
       case 'b':
@@ -185,7 +183,8 @@ module.exports = {
     fan |= state.v;
     fan |= !!f012;
     let windows = true;
-    windows &= Math.abs(s[0].t - (s[1] + s[2]) / 2) < 4;
+    windows &= Math.abs(s[0].t - s[1].t) < 2;
+    windows &= Math.abs(s[0].t - s[2].t) < 2;
     windows &= s[0].wind < 4.5;
     windows |= fan;
     let curtain = false;
@@ -201,7 +200,7 @@ module.exports = {
       acFan,
     };
     if (process.env.DEBUG) {
-      console.log(`f012: ${f012} s:`, s, 'res:', res);
+      console.log(`f012: ${f012} t0: ${s[0].t} tt:`, tt, `tc: ${tc} res:`, res);
     }
     return res;
   },

@@ -84,7 +84,7 @@ app.post('/rf', bodyParser.json(), (req, res) => {
 
 let ores = {};
 core.init();
-setInterval(await () => {
+setInterval(async () => {
   const getLast = (location) => new Promise((resolve) => {
     db.find({ location }).sort({ createdAt: -1 }).limit(1).exec((err, docs) => {
       if (err) {
@@ -182,6 +182,7 @@ setInterval(await () => {
       }
     }
   }
+  ores = res;
 }, process.env.DEBUG ? 100 : 30000);
 
 const port = process.env.DEBUG ? 3000 : 80;
