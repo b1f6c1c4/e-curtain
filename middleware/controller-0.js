@@ -25,7 +25,7 @@ const app = express();
 dayjs.extend(isoWeek);
 
 app.post('/sensor', bodyParser.json(), (req, res) => {
-  console.log(`Info: got sensor ${req.body.location} data at ${dayjs().toISOString()}`);
+  console.log(`Info: got sensor ${req.body.location} data at ${dayjs().toISOString()}`, req.body);
   db.insert(req.body, (err, doc) => {
     if (err) {
       res.status(500).send(err);
@@ -39,7 +39,7 @@ app.post('/sensor', bodyParser.json(), (req, res) => {
 });
 
 app.post('/weather', bodyParser.json(), (req, res) => {
-  console.log(`Info: got weather data at ${dayjs().toISOString()}`);
+  console.log(`Info: got weather data at ${dayjs().toISOString()}`, req.body);
   db.insert(req.body, (err, doc) => {
     if (err) {
       res.status(500).send(err);
@@ -154,13 +154,13 @@ const tick = async () => {
       console.log(`Set ac to heat I`);
       if (!process.env.DEBUG) {
         servo(10, 30);
-        servo(12, 50);
+        servo(12, 10);
       }
     } else if (res.ac === +2) {
       console.log(`Set ac to heat II`);
       if (!process.env.DEBUG) {
         servo(10, 0);
-        servo(12, 50);
+        servo(12, 10);
       }
     } else if (res.acFan === +1) {
       console.log(`Set ac to fan I`);
@@ -178,13 +178,13 @@ const tick = async () => {
       console.log(`Set ac to cool I`);
       if (!process.env.DEBUG) {
         servo(10, 150);
-        servo(12, 130);
+        servo(12, 170);
       }
     } else if (res.ac === -2) {
       console.log(`Set ac to cool II`);
       if (!process.env.DEBUG) {
         servo(10, 180);
-        servo(12, 130);
+        servo(12, 170);
       }
     } else {
       console.log(`Set ac to Off`);

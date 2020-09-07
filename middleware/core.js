@@ -185,9 +185,11 @@ module.exports = {
     let windows = true;
     windows &= Math.abs(s[0].t - s[1].t) < 2;
     windows &= Math.abs(s[0].t - s[2].t) < 2;
+    windows &= Math.abs(s[0].t - tc) < 2;
+    windows &= Math.abs(s[0].t - (tt.max + tt.min) / 2) < 2;
     windows &= s[0].wind < 4.5;
     windows |= fan;
-    let curtain = false;
+    let curtain = windows;
     curtain |= s[0].t < tc - 4;
     curtain |= state.s === 's' && state.p > 510;
     curtain |= fan;
