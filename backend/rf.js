@@ -4,6 +4,7 @@ const shell = require('shelljs');
 
 const interval = 200;
 
+let vo = 0;
 function measure(endpoint) {
   shell.exec(path.join(__dirname, 'rf.py'), (code, stdout, stderr) => {
     if (code) {
@@ -13,18 +14,14 @@ function measure(endpoint) {
       console.error(stderr);
     }
     const v = +stdout;
-    if (v) {
+    if (v && v != vo) {
       axios({
         method: 'post',
         url: `http://${host}/rf`,
-        data: {
-          a: v & 8,
-          b: v & 4,
-          c: v & 2,
-          d: v & 1,
-        },
+        data: { v },
       });
     }
+    vo = v;
   });
 }
 

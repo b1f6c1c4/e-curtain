@@ -2,7 +2,7 @@ const path = require('path');
 const axios = require('axios').default;
 const shell = require('shelljs');
 
-const interval = 10e3;
+const interval = 60e3;
 
 function measure(location, endpoint) {
   shell.exec(path.join(__dirname, 'sensor.py'), (code, stdout, stderr) => {
