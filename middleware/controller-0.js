@@ -25,7 +25,7 @@ const app = express();
 dayjs.extend(isoWeek);
 
 app.post('/sensor', bodyParser.json(), (req, res) => {
-  console.log('Info: got sensor data');
+  console.log(`Info: got sensor ${req.body.location} data at ${dayjs().toISOString()}`);
   db.insert(req.body, (err, doc) => {
     if (err) {
       res.status(500).send(err);
@@ -39,7 +39,7 @@ app.post('/sensor', bodyParser.json(), (req, res) => {
 });
 
 app.post('/weather', bodyParser.json(), (req, res) => {
-  console.log('Info: got weather data');
+  console.log(`Info: got weather data at ${dayjs().toISOString()}`);
   db.insert(req.body, (err, doc) => {
     if (err) {
       res.status(500).send(err);
@@ -54,7 +54,7 @@ app.post('/weather', bodyParser.json(), (req, res) => {
 
 let rfOld = null, rfT = null;
 app.post('/rf', bodyParser.json(), (req, res) => {
-  console.log('Info: got rf data');
+  console.log(`Info: got rf data ${req.body.v} at ${dayjs().toISOString()}`);
   if (+new Date() - rfT > 3e3) {
     rfOld = null;
     rfT = null;
@@ -86,8 +86,7 @@ app.post('/rf', bodyParser.json(), (req, res) => {
 });
 
 let ores = {};
-core.init();
-setInterval(async () => {
+const tick = async () => {
   const getLast = (location) => new Promise((resolve) => {
     db.find({ location }).sort({ createdAt: -1 }).limit(1).exec((err, docs) => {
       if (err) {
@@ -102,7 +101,7 @@ setInterval(async () => {
     });
   });
   const getAverage = (location, since) => new Promise((resolve) => {
-    db.find({ location, createdAt: { $gt: since } }).exec((err, docs) => {
+    db.find({ location, createdAt: { $gte: new Date(since) } }).exec((err, docs) => {
       if (err) {
         console.error(err);
         resolve(null);
@@ -113,7 +112,7 @@ setInterval(async () => {
         res.t /= docs.length;
         resolve(res);
       } else {
-        console.error(`Warning: no recent sensor data found for ${location}`);
+        console.error(`Warning: no recent sensor data found for ${location} since ${since}`);
         resolve(null);
       }
     });
@@ -155,41 +154,53 @@ setInterval(async () => {
       console.log(`Set ac to heat I`);
       if (!process.env.DEBUG) {
         servo(10, 30);
+        servo(12, 50);
       }
     } else if (res.ac === +2) {
       console.log(`Set ac to heat II`);
       if (!process.env.DEBUG) {
         servo(10, 0);
+        servo(12, 50);
       }
     } else if (res.acFan === +1) {
       console.log(`Set ac to fan I`);
       if (!process.env.DEBUG) {
         servo(10, 90);
+        servo(12, 0);
       }
     } else if (res.acFan === +2) {
       console.log(`Set ac to fan I`);
       if (!process.env.DEBUG) {
         servo(10, 120);
+        servo(12, 0);
       }
     } else if (res.ac === -1) {
       console.log(`Set ac to cool I`);
       if (!process.env.DEBUG) {
         servo(10, 150);
+        servo(12, 130);
       }
     } else if (res.ac === -2) {
       console.log(`Set ac to cool II`);
       if (!process.env.DEBUG) {
         servo(10, 180);
+        servo(12, 130);
       }
     } else {
       console.log(`Set ac to Off`);
       if (!process.env.DEBUG) {
         servo(10, 60);
+        servo(12, 180);
       }
     }
   }
   ores = res;
-}, process.env.DEBUG ? 100 : 30000);
+};
+
+core.init();
+tick();
+
+setInterval(tick, process.env.DEBUG ? 100 : 30000);
 
 const port = process.env.DEBUG ? 3000 : 80;
 console.log(`Listening on 0.0.0.0:${port}`)

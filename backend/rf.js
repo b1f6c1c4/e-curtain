@@ -22,6 +22,7 @@ function measure(endpoint) {
         method: 'post',
         url: `http://${endpoint}/rf`,
         data: { v },
+        validateStatus: null,
       });
     }
     vo = v;
