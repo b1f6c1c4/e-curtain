@@ -4,24 +4,26 @@ import sys
 import RPi.GPIO as GPIO
 from time import sleep
 
+port = 10
+
 def goLeft():
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(3, GPIO.OUT)
-    p = GPIO.PWM(3, 1 / 3000e-6)
+    GPIO.setup(port, GPIO.OUT)
+    p = GPIO.PWM(port, 1 / 3000e-6)
     p.start(75)
     sleep(8.0)
     p.stop()
-    GPIO.output(3, GPIO.LOW)
+    GPIO.output(port, GPIO.LOW)
     GPIO.cleanup()
 
 def goRight():
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(3, GPIO.OUT)
-    p = GPIO.PWM(3, 1 / 3000e-6)
+    GPIO.setup(port, GPIO.OUT)
+    p = GPIO.PWM(port, 1 / 3000e-6)
     p.start(25)
     sleep(7.9)
     p.stop()
-    GPIO.output(3, GPIO.LOW)
+    GPIO.output(port, GPIO.LOW)
     GPIO.cleanup()
 
 if __name__ == "__main__":
