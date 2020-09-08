@@ -38,11 +38,12 @@ module.exports = {
           ddl = +new Date() + 5 * min;
         }
         break;
-      case 'C': // forced ventilation on/off
-        state.v ^= true;
+      case 'C': // forced no ventilation
+        state.novent = !state.novent;
         break;
       case 'D': // forced cooling on/off
         switch (state.s) {
+          case 'b':
           case 'n':
             state = { s: 'nfc', v: false };
             nstate = { s: 'n', v: false };
@@ -60,7 +61,8 @@ module.exports = {
     console.log(`${dayjs().toISOString()} Cmd: ${cmd}, state:`, state, `nstate:`, nstate, `ddl: ${ddl && dayjs(ddl).toISOString()}, vcnt: ${vcnt}`);
   },
   tick: (s) => {
-    let novent = Math.abs(s[0].t - (s[1] + s[2]) / 2) > 5 + 5 * vcnt;
+    let novent = state.novent;
+    novent |= Math.abs(s[0].t - (s[1] + s[2]) / 2) > 5 + 5 * vcnt;
     novent |= s[0].wind > 5.5;
     if (nstate) {
       const slack = +new Date() - ddl;
