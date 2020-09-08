@@ -21,70 +21,6 @@ db.ensureIndex({
   fieldName: 'createdAt',
 });
 
-const app = express();
-dayjs.extend(isoWeek);
-
-app.post('/sensor', bodyParser.json(), (req, res) => {
-  console.log(`Info: got sensor ${req.body.location} data at ${dayjs().toISOString()}`, req.body);
-  db.insert(req.body, (err, doc) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.status(204).send();
-      if (process.env.DEBUG) {
-        console.log(doc);
-      }
-    }
-  });
-});
-
-app.post('/weather', bodyParser.json(), (req, res) => {
-  console.log(`Info: got weather data at ${dayjs().toISOString()}`, req.body);
-  db.insert(req.body, (err, doc) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.status(204).send();
-      if (process.env.DEBUG) {
-        console.log(doc);
-      }
-    }
-  });
-});
-
-let rfOld = null, rfT = null;
-app.post('/rf', bodyParser.json(), (req, res) => {
-  console.log(`Info: got rf data ${req.body.v} at ${dayjs().toISOString()}`);
-  if (+new Date() - rfT > 3e3) {
-    rfOld = null;
-    rfT = null;
-  }
-  rfT = +new Date();
-  if (req.body.v === rfOld) {
-    res.status(429).send();
-    return;
-  }
-  rfOld = req.body.v;
-  switch (req.body.v) {
-    case 8:
-      core.command('A');
-      break;
-    case 4:
-      core.command('B');
-      break;
-    case 2:
-      core.command('C');
-      break;
-    case 1:
-      core.command('D');
-      break;
-    default:
-      res.status(422).send();
-      return;
-  }
-  res.status(204).send();
-});
-
 let ores = {};
 const tick = async () => {
   const getLast = (location) => new Promise((resolve) => {
@@ -147,6 +83,7 @@ const tick = async () => {
     console.log(`Set register to ${res.register}`);
     if (!process.env.DEBUG) {
       servo(8, 180 - res.register * (180 - 85));
+      servo(16, 70 - res.register * (70 - 0));
     }
   }
   if (res.ac !== ores.ac || res.acFan !== ores.acFan) {
@@ -196,6 +133,71 @@ const tick = async () => {
   }
   ores = res;
 };
+
+const app = express();
+dayjs.extend(isoWeek);
+
+app.post('/sensor', bodyParser.json(), (req, res) => {
+  console.log(`Info: got sensor ${req.body.location} data at ${dayjs().toISOString()}`, req.body);
+  db.insert(req.body, (err, doc) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.status(204).send();
+      if (process.env.DEBUG) {
+        console.log(doc);
+      }
+    }
+  });
+});
+
+app.post('/weather', bodyParser.json(), (req, res) => {
+  console.log(`Info: got weather data at ${dayjs().toISOString()}`, req.body);
+  db.insert(req.body, (err, doc) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.status(204).send();
+      if (process.env.DEBUG) {
+        console.log(doc);
+      }
+    }
+  });
+});
+
+let rfOld = null, rfT = null;
+app.post('/rf', bodyParser.json(), (req, res) => {
+  console.log(`Info: got rf data ${req.body.v} at ${dayjs().toISOString()}`);
+  if (+new Date() - rfT > 3e3) {
+    rfOld = null;
+    rfT = null;
+  }
+  rfT = +new Date();
+  if (req.body.v === rfOld) {
+    res.status(429).send();
+    return;
+  }
+  rfOld = req.body.v;
+  switch (req.body.v) {
+    case 8:
+      core.command('A');
+      break;
+    case 4:
+      core.command('B');
+      break;
+    case 2:
+      core.command('C');
+      break;
+    case 1:
+      core.command('D');
+      break;
+    default:
+      res.status(422).send();
+      return;
+  }
+  res.status(204).send();
+  setImmediate(tick);
+});
 
 core.init();
 tick();
