@@ -5,7 +5,7 @@ const EventEmitter = require('events');
 
 EventEmitter.defaultMaxListeners = 30;
 
-const interval = 100;
+const interval = 70;
 
 let vo = 0;
 function measure(endpoint) {
@@ -26,7 +26,8 @@ function measure(endpoint) {
       });
     }
     vo = v;
+    setTimeout(measure, interval, endpoint);
   });
 }
 
-module.exports = (ep) => { setInterval(measure, interval, ep); };
+module.exports = measure;
