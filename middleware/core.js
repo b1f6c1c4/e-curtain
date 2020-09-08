@@ -58,15 +58,23 @@ module.exports = {
         break;
     }
     if (state.v) vcnt = 0;
-    console.log(`${dayjs().toISOString()} Cmd: ${cmd}, state:`, state, `nstate:`, nstate, `ddl: ${ddl && dayjs(ddl).toISOString()}, vcnt: ${vcnt}`);
+    console.log(
+      dayjs().toISOString(),
+      'Cmd:', cmd,
+      '->', state,
+      '->', nstate,
+      'ddl:', ddl && dayjs(ddl).toISOString(),
+      'vcnt:', vcnt,
+    );
   },
   tick: (s) => {
-    let novent = state.novent;
+    let novent = !!state.novent;
     novent |= Math.abs(s[0].t - (s[1] + s[2]) / 2) > 5 + 5 * vcnt;
     novent |= s[0].wind > 5.5;
     if (nstate) {
       const slack = +new Date() - ddl;
       if (slack >= 0) {
+        const ostate = state;
         state = nstate;
         switch (state.s) {
           case 'b':
@@ -87,7 +95,14 @@ module.exports = {
             vcnt = 0;
           }
         }
-        console.log(`${dayjs().toISOString()} Tick, state:`, state, `nstate:`, nstate, `ddl: ${ddl && dayjs(ddl).toISOString()}, vcnt: ${vcnt}`);
+        console.log(
+          dayjs().toISOString(),
+          'State:', ostate,
+          '->', state,
+          '->', nstate,
+          'ddl:', ddl && dayjs(ddl).toISOString(),
+          'vcnt:', vcnt,
+        );
       }
     }
 
@@ -149,6 +164,7 @@ module.exports = {
         denoised = true;
         break;
     }
+    denoised |= state.novent;
 
     let f012 = 0;
     let ac = 0, acFan = 0;
@@ -190,12 +206,12 @@ module.exports = {
     windows &= Math.abs(s[0].t - tc) < 2;
     windows &= Math.abs(s[0].t - (tt.max + tt.min) / 2) < 2;
     windows &= s[0].wind < 4.5;
-    windows &= !(state.s === 's' && state.s === 'sx');
+    windows &= !(state.s === 's' || state.s === 'sx');
     windows |= fan;
     let curtain = windows;
     curtain |= s[0].sun && s[0].t < tc - 4;
     curtain |= !s[0].sun && s[0].t > tc + 4;
-    curtain &= !(state.s === 's' && state.s === 'sx');
+    curtain &= !(state.s === 's' || state.s === 'sx');
     curtain |= state.s === 's' && state.p > 510;
     const res = {
       fan,
@@ -206,7 +222,13 @@ module.exports = {
       acFan,
     };
     if (process.env.DEBUG) {
-      console.log(`f012: ${f012} t0: ${s[0].t} tt:`, tt, `tc: ${tc} res:`, res);
+      console.log(
+        'f012:', f012,
+        't0:', s[0].t,
+        'tt:', tt,
+        'tc:', tc,
+        'res:', res,
+      );
     }
     return res;
   },
