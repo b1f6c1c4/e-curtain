@@ -94,7 +94,7 @@ module.exports = {
       case 'b':
       case 'w':
       case 'n':
-        tt = { min: 20, max: 23 };
+        tt = { min: 22, max: 24 };
         break;
       case 'nfc':
         tt = { min: 16, max: 18 };
@@ -191,7 +191,8 @@ module.exports = {
     windows &= !(state.s === 's' && state.s === 'sx');
     windows |= fan;
     let curtain = windows;
-    curtain |= s[0].t < tc - 4;
+    curtain |= s[0].sun && s[0].t < tc - 4;
+    curtain |= !s[0].sun && s[0].t > tc + 4;
     curtain &= !(state.s === 's' && state.s === 'sx');
     curtain |= state.s === 's' && state.p > 510;
     const res = {
