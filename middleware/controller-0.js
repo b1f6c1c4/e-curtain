@@ -64,7 +64,12 @@ const tick = async () => {
   const res = core.tick(s);
   if (res.fan !== ores.fan) {
     console.log(`Set fan to ${res.fan}`);
-    // TODO: fan
+    if (!process.env.DEBUG) {
+      axios({
+        method: 'post',
+        url: `http://controller-1:80/${res.fan ? 'on' : 'off'}`,
+      });
+    }
   }
   if (res.windows !== ores.windows) {
     console.log(`Set windows to ${res.windows}`);
