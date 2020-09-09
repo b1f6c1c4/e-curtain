@@ -173,7 +173,7 @@ app.post('/weather', bodyParser.json(), (req, res) => {
 let rfOld = null, rfT = null;
 app.post('/rf', bodyParser.json(), (req, res) => {
   console.log(`Info: got rf data ${req.body.v} at ${dayjs().toISOString()}`);
-  if (+new Date() - rfT > 1.5e3) {
+  if (+new Date() - rfT > 1e3) {
     rfOld = null;
     rfT = null;
   }
