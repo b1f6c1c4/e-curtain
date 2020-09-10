@@ -4,7 +4,6 @@ const dayjs = require('dayjs');
 // b : Balanced
 // w : Waking up
 // n : Normal
-// nfc : Normal, forced cooling
 // s : Sleeping
 // sx : Re-sleeping
 let state;
@@ -38,23 +37,8 @@ module.exports = {
           ddl = +new Date() + 5 * min;
         }
         break;
-      case 'C': // forced no ventilation
-        state.novent = !state.novent;
-        break;
-      case 'D': // forced cooling on/off
-        switch (state.s) {
-          case 'b':
-          case 'n':
-            state = { s: 'nfc', v: false };
-            nstate = { s: 'n', v: false };
-            ddl = +new Date() + 20 * min;
-            break;
-          case 'nfc':
-            state = { s: 'n', v: false };
-            nstate = { s: 'n', v: true };
-            ddl = +new Date() + 50 * min;
-            break;
-        }
+      case 'C':
+      case 'D':
         break;
     }
     if (state.v) vcnt = 0;
@@ -113,9 +97,6 @@ module.exports = {
       case 'n':
         tt = { min: 22, max: 24 };
         break;
-      case 'nfc':
-        tt = { min: 16, max: 18 };
-        break;
       case 's':
         if (state.p === undefined) {
           tt = { min: 24, max: 26 };
@@ -142,7 +123,6 @@ module.exports = {
         k = 2 / 3;
         break;
       case 'n':
-      case 'nfc':
         k = 0;
         break;
       case 's':
@@ -156,7 +136,6 @@ module.exports = {
       case 'b':
       case 'w':
       case 'n':
-      case 'nfc':
         denoised = false;
         break;
       case 's':
