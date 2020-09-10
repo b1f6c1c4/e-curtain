@@ -4,7 +4,7 @@ import sys
 import RPi.GPIO as GPIO
 from time import sleep
 
-port = 7
+port = 8
 
 def goLeft():
     GPIO.setmode(GPIO.BOARD)

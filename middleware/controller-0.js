@@ -73,7 +73,12 @@ const tick = async () => {
   }
   if (res.windows !== ores.windows) {
     console.log(`Set windows to ${res.windows}`);
-    // TODO: windows
+    if (!process.env.DEBUG) {
+      axios({
+        method: 'post',
+        url: `http://controller-1:80/${res.windows ? 'wopen' : 'wclose'}`,
+      });
+    }
   }
   if (res.curtain !== ores.curtain) {
     console.log(`Set curtain to ${res.curtain}`);
