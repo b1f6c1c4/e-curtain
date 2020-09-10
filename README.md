@@ -4,9 +4,11 @@
 
 ## Features
 
+- **Everything is DIY**
+- Automatic bedroom temperature control for optimal sleep quality
+- Automatic room ventilation for optimal air quality
 - Automatic weather information retrival
 - Automatic room temperature measurement
-- Automatic bedroom temperature control for optimal sleep quality
 - Automatic curtain control (open/close)
 - Automatic window control (open/close)
 - Automatic AC cooling/heating/ventilating/off mode selection
@@ -14,7 +16,6 @@
 - Automatic fan control (on/off)
 - Keyfobs for easy global mode selection
 - (TODO) Web-based dashboard for monitoring
-- **Everything is DIY**
 
 ## Hardware requirement
 

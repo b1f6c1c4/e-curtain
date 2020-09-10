@@ -17,7 +17,7 @@ def goLeft():
     GPIO.output(port_ena, GPIO.HIGH)
     p = GPIO.PWM(port_pul, 1000)
     p.start(50)
-    sleep(7.7)
+    sleep(9.5)
     p.stop()
     GPIO.cleanup()
 
@@ -30,7 +30,7 @@ def goRight():
     GPIO.output(port_ena, GPIO.HIGH)
     p = GPIO.PWM(port_pul, 1000)
     p.start(50)
-    sleep(7.9)
+    sleep(9.9)
     p.stop()
     GPIO.cleanup()
 
