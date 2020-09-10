@@ -5,9 +5,8 @@ const EventEmitter = require('events');
 
 EventEmitter.defaultMaxListeners = 30;
 
-const interval = 70;
+const interval = 500;
 
-let vo = 0;
 function measure(endpoint) {
   shell.exec(path.join(__dirname, 'rf.py'), { silent: true }, (code, stdout, stderr) => {
     if (code) {
@@ -17,15 +16,12 @@ function measure(endpoint) {
       console.error(stderr);
     }
     const v = +stdout;
-    if (v && v != vo) {
-      axios({
-        method: 'post',
-        url: `http://${endpoint}/rf`,
-        data: { v },
-        validateStatus: null,
-      });
-    }
-    vo = v;
+    axios({
+      method: 'post',
+      url: `http://${endpoint}/rf`,
+      data: { v },
+      validateStatus: null,
+    });
     setTimeout(measure, interval, endpoint);
   });
 }

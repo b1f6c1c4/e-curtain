@@ -200,19 +200,8 @@ app.post('/weather', bodyParser.json(), (req, res) => {
   });
 });
 
-let rfOld = null, rfT = null;
 app.post('/rf', bodyParser.json(), (req, res) => {
   console.log(`Info: got rf data ${req.body.v} at ${dayjs().toISOString()}`);
-  if (+new Date() - rfT > 1e3) {
-    rfOld = null;
-    rfT = null;
-  }
-  rfT = +new Date();
-  if (req.body.v === rfOld) {
-    res.status(429).send();
-    return;
-  }
-  rfOld = req.body.v;
   switch (req.body.v) {
     case 8:
       core.command('A');
