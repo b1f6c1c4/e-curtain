@@ -11,6 +11,11 @@ let nstate, ddl;
 let vcnt;
 
 const min = process.env.DEBUG ? 0.2e3 : 60e3;
+let offset = 0;
+let tt, tc;
+let k;
+let denoised;
+let novent;
 
 module.exports = {
   init: () => {
@@ -18,7 +23,22 @@ module.exports = {
     nstate = null;
     ddl = null;
     vcnt = 0;
+    offset = 0;
   },
+  state: () => ({
+    state,
+    nstate,
+    ddl,
+    vcnt,
+    offset,
+  }),
+  mstate: () => ({
+    tt,
+    tc,
+    k,
+    novent,
+    denoised,
+  }),
   command: (cmd) => {
     switch (cmd) {
       case 'A': // waking up
@@ -38,7 +58,25 @@ module.exports = {
         }
         break;
       case 'C':
+        offset += 0.5;
+        break;
       case 'D':
+        offset -= 0.5;
+        break;
+      case 'b':
+        state = { s: 'n', v: false };
+        nstate = { s: 'n', v: true };
+        ddl = +new Date() + 15 * min;
+        break;
+      case 'n':
+        state = { s: 'n', v: false };
+        nstate = { s: 'n', v: true };
+        ddl = +new Date() + 15 * min;
+        break;
+      case 's':
+        state = { s: 's', p: 0, v: false };
+        nstate = { s: 's', p: 5, v: false };
+        ddl = +new Date() + 5 * min;
         break;
     }
     if (state.v) vcnt = 0;
@@ -49,10 +87,11 @@ module.exports = {
       '->', nstate,
       'ddl:', ddl && dayjs(ddl).toISOString(),
       'vcnt:', vcnt,
+      'offset:', offset,
     );
   },
   tick: (s) => {
-    let novent = !!state.novent;
+    novent = !!state.novent;
     novent |= Math.abs(s[0].t - (s[1] + s[2]) / 2) > 5 + 5 * vcnt;
     novent |= s[0].wind > 5.5;
     if (nstate) {
@@ -90,7 +129,6 @@ module.exports = {
       }
     }
 
-    let tt;
     switch (state.s) {
       case 'b':
       case 'w':
@@ -114,7 +152,8 @@ module.exports = {
         tt = { min: 26, max: 28 };
         break;
     }
-    let k;
+    tt.min += offset;
+    tt.max += offset;
     switch (state.s) {
       case 'b':
         k = 1 / 3;
@@ -130,8 +169,7 @@ module.exports = {
         k = 1;
         break;
     }
-    const tc = k*s[1].t + (1-k)*s[2].t;
-    let denoised;
+    tc = k*s[1].t + (1-k)*s[2].t;
     switch (state.s) {
       case 'b':
       case 'w':
@@ -148,25 +186,33 @@ module.exports = {
     let f012 = 0;
     let ac = 0, acFan = 0;
 
-    if (tc > tt.max) {
-      if (tt.min - s[0].t >= 2 * (tc - tt.max) && !denoised) {
+    if (tc > (tt.max - tt.min) * 2 / 3 + tt.min) {
+      if (tt.min - s[0].t >= 3 * (tc - tt.max) && !denoised) {
         f012 = 1;
-      } else {
+      } else if (tc > tt.max) {
+        ac = -2;
+      } else if (tc > (tt.max - tt.min) * 3 / 4 + tt.min) {
         ac = -1;
-        if (tc > tt.max + 1 || state.v && s[0].t > tt.max) {
-          ac *= 2;
-        }
       }
-    } else if (tc < tt.min) {
-      if (s[0].t - tt.max >= 2 * (tt.min - tc) && !denoised) {
+      if (state.v && s[0].t > tt.max) {
+        ac -= 1;
+      }
+    } else if (tc < (tt.max - tt.min) * 1 / 3 + tt.min) {
+      if (s[0].t - tt.max >= 3 * (tt.min - tc) && !denoised) {
         f012 = 1;
-      } else {
+      } else if (tc < tt.min) {
+        ac = +2;
+      } else if (tc < (tt.max - tt.min) * 1 / 5 + tt.min) {
         ac = +1;
-        if (tc < tt.min - 1 || state.v && s[0].t < tt.min) {
-          ac *= 2;
-        }
+      }
+      if (state.v && s[0].t < tt.min) {
+        ac += 1;
       }
     }
+    if (ac > +2)
+      ac = +2;
+    if (ac < -2)
+      ac = -2;
 
     let register = 0;
     if (ac > 0) {

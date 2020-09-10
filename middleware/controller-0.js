@@ -21,8 +21,7 @@ db.ensureIndex({
   fieldName: 'createdAt',
 });
 
-let ores = {};
-const tick = async () => {
+const getS = async () => {
   const getLast = (location) => new Promise((resolve) => {
     db.find({ location }).sort({ createdAt: -1 }).limit(1).exec((err, docs) => {
       if (err) {
@@ -58,6 +57,12 @@ const tick = async () => {
   s[0] = await getLast(0);
   s[1] = await getAverage(1, since) || await getLast(1);
   s[2] = await getAverage(2, since) || await getLast(2);
+  return s;
+};
+
+let ores = {};
+const tick = async () => {
+  const s = await getS();
   if (!(s[0] && s[1] && s[2])) {
     return;
   }
@@ -70,36 +75,32 @@ const tick = async () => {
           method: 'post',
           url: `http://controller-1:80/${res.fan ? 'on' : 'off'}`,
         });
-      }, 15000);
+      }, 5000);
     }
   }
   if (res.windows !== ores.windows) {
     console.log(`Set windows to ${res.windows}`);
     if (!process.env.DEBUG) {
-      setTimeout(() => {
-        axios({
-          method: 'post',
-          url: `http://controller-1:80/${res.windows ? 'wopen' : 'wclose'}`,
-        });
-      }, 9000);
+      axios({
+        method: 'post',
+        url: `http://controller-1:80/${res.windows ? 'wopen' : 'wclose'}`,
+      });
     }
   }
   if (res.curtain !== ores.curtain) {
     console.log(`Set curtain to ${res.curtain}`);
     if (!process.env.DEBUG) {
-      setTimeout(() => {
-        axios({
-          method: 'post',
-          url: `http://controller-1:80/${res.curtain ? 'open' : 'close'}`,
-        });
-      }, 100);
+      axios({
+        method: 'post',
+        url: `http://controller-1:80/${res.curtain ? 'open' : 'close'}`,
+      });
     }
   }
   if (res.register !== ores.register) {
     console.log(`Set register to ${res.register}`);
     if (!process.env.DEBUG) {
-      servo(8, 180 - res.register * (180 - 85));
-      setTimeout(() => { servo(16, 70 - res.register * (70 - 0)); }, 5000);
+      setTimeout(() => { servo(8, 180 - res.register * (180 - 85)); }, 2500);
+      setTimeout(() => { servo(16, 70 - res.register * (70 - 0)); }, 7500);
     }
   }
   if (res.ac !== ores.ac || res.acFan !== ores.acFan) {
@@ -152,6 +153,24 @@ const tick = async () => {
 
 const app = express();
 dayjs.extend(isoWeek);
+
+app.get('/state', bodyParser.json(), (req, res) => {
+  getS().then((s) => {
+    res.json({
+      s,
+      c: core.state(),
+      m: core.mstate(),
+      a: ores,
+    });
+  });
+});
+
+app.post('/cmd', bodyParser.json(), (req, res) => {
+  console.log(`Info: got cmd data at ${dayjs().toISOString()}`, req.body);
+  core.command(req.body.cmd);
+  res.status(204).send();
+  setImmediate(tick);
+});
 
 app.post('/sensor', bodyParser.json(), (req, res) => {
   console.log(`Info: got sensor ${req.body.location} data at ${dayjs().toISOString()}`, req.body);
