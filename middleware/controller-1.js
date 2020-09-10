@@ -13,7 +13,7 @@ app.post('/open', (req, res) => {
 });
 
 app.post('/close', (req, res) => {
-  stepper(false);
+  curtain(false);
   res.status(204).send();
 });
 
@@ -23,7 +23,7 @@ app.post('/wopen', (req, res) => {
 });
 
 app.post('/wclose', (req, res) => {
-  windows(false);
+  stepper(false);
   res.status(204).send();
 });
 
