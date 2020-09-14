@@ -65,8 +65,8 @@ module.exports = {
         break;
       case 'b':
         state = { s: 'n', v: false };
-        nstate = { s: 'n', v: true };
-        ddl = +new Date() + 15 * min;
+        nstate = null;
+        ddl = null;
         break;
       case 'n':
         state = { s: 'n', v: false };
@@ -100,7 +100,6 @@ module.exports = {
         const ostate = state;
         state = nstate;
         switch (state.s) {
-          case 'b':
           case 'n':
             nstate = { s: state.s, v: !state.v };
             ddl = +new Date() + (state.v ? 5 : 50) * min;
@@ -131,6 +130,8 @@ module.exports = {
 
     switch (state.s) {
       case 'b':
+        tt = { min: 23, max: 24 };
+        break;
       case 'w':
       case 'n':
         tt = { min: 22, max: 24 };
@@ -172,6 +173,8 @@ module.exports = {
     tc = k*s[1].t + (1-k)*s[2].t;
     switch (state.s) {
       case 'b':
+        denoised = true;
+        break;
       case 'w':
       case 'n':
         denoised = false;
