@@ -225,6 +225,10 @@ module.exports = {
       acFan = 2;
     }
 
+    if (ac === 0 && f012) {
+      acFan = 2;
+    }
+
     let fan = false;
     fan |= state.v;
     fan |= !!f012;
