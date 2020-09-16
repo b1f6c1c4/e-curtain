@@ -3,7 +3,7 @@ const fs = require('fs');
 const JSON5 = require('json5');
 const axios = require('axios').default;
 
-const interval = 30 * 60e3;
+const interval = 10 * 60e3;
 const config = JSON5.parse(fs.readFileSync(path.join(__dirname, '..', 'weather.json5'), 'utf8'));
 
 async function measure(endpoint) {
