@@ -116,18 +116,6 @@ const tick = async () => {
         servo(10, 0);
         setTimeout(() => { servo(12, 10); }, 5000);
       }
-    } else if (res.acFan === +1) {
-      console.log(`Set ac to fan I`);
-      if (!process.env.DEBUG) {
-        servo(10, 90);
-        setTimeout(() => { servo(12, 0); }, 5000);
-      }
-    } else if (res.acFan === +2) {
-      console.log(`Set ac to fan I`);
-      if (!process.env.DEBUG) {
-        servo(10, 120);
-        setTimeout(() => { servo(12, 0); }, 5000);
-      }
     } else if (res.ac === -1) {
       console.log(`Set ac to cool I`);
       if (!process.env.DEBUG) {
@@ -139,6 +127,18 @@ const tick = async () => {
       if (!process.env.DEBUG) {
         servo(10, 180);
         setTimeout(() => { servo(12, 170); }, 5000);
+      }
+    } else if (res.acFan === +1) {
+      console.log(`Set ac to fan I`);
+      if (!process.env.DEBUG) {
+        servo(10, 90);
+        setTimeout(() => { servo(12, 0); }, 5000);
+      }
+    } else if (res.acFan === +2) {
+      console.log(`Set ac to fan I`);
+      if (!process.env.DEBUG) {
+        servo(10, 120);
+        setTimeout(() => { servo(12, 0); }, 5000);
       }
     } else {
       console.log(`Set ac to Off`);

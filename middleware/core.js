@@ -218,7 +218,7 @@ module.exports = {
       ac = -2;
 
     let register = 0;
-    if (ac > 0) {
+    if (ac !== 0) {
       register = k;
     } else if (state.s === 's' || state.s === 'sx') {
       register = 1;
