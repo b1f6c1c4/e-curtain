@@ -61,6 +61,11 @@ const getS = async () => {
   return s;
 };
 
+const to08 = 0000;
+const to16 = 0000;
+const to10 = 4000;
+const to12 = 4000;
+
 let ores = {};
 const tick = async () => {
   const s = await getS();
@@ -100,57 +105,57 @@ const tick = async () => {
   if (res.register1 !== ores.register1) {
     console.log(`Set register1 to ${res.register1}`);
     if (!process.env.DEBUG) {
-      setTimeout(() => { servo(16, 100 - res.register1 * (100 - 0)); }, 250);
+      setTimeout(() => { servo(8, 100 - res.register1 * (100 - 0)); }, to08);
     }
   }
   if (res.register2 !== ores.register2) {
     console.log(`Set register2 to ${res.register2}`);
     if (!process.env.DEBUG) {
-      setTimeout(() => { slowServo(res.register2); }, 750);
+      setTimeout(() => { slowServo(res.register2); }, to16);
     }
   }
   if (res.ac !== ores.ac || res.acFan !== ores.acFan) {
     if (res.ac === +1) {
       console.log(`Set ac to heat I`);
       if (!process.env.DEBUG) {
-        servo(10, 30);
-        setTimeout(() => { servo(12, 10); }, 500);
+        setTimeout(() => { servo(10, 30); }, to10);
+        setTimeout(() => { servo(12, 10); }, to12);
       }
     } else if (res.ac === +2) {
       console.log(`Set ac to heat II`);
       if (!process.env.DEBUG) {
-        servo(10, 0);
-        setTimeout(() => { servo(12, 10); }, 500);
+        setTimeout(() => { servo(10, 0); }, to10);
+        setTimeout(() => { servo(12, 10); }, to12);
       }
     } else if (res.ac === -1) {
       console.log(`Set ac to cool I`);
       if (!process.env.DEBUG) {
-        servo(10, 150);
-        setTimeout(() => { servo(12, 170); }, 500);
+        setTimeout(() => { servo(10, 150); }, to10);
+        setTimeout(() => { servo(12, 170); }, to12);
       }
     } else if (res.ac === -2) {
       console.log(`Set ac to cool II`);
       if (!process.env.DEBUG) {
-        servo(10, 180);
-        setTimeout(() => { servo(12, 170); }, 500);
+        setTimeout(() => { servo(10, 180); }, to10);
+        setTimeout(() => { servo(12, 170); }, to12);
       }
     } else if (res.acFan === +1) {
       console.log(`Set ac to fan I`);
       if (!process.env.DEBUG) {
-        servo(10, 90);
-        setTimeout(() => { servo(12, 0); }, 500);
+        setTimeout(() => { servo(10, 90); }, to10);
+        setTimeout(() => { servo(12, 0); }, to12);
       }
     } else if (res.acFan === +2) {
       console.log(`Set ac to fan I`);
       if (!process.env.DEBUG) {
-        servo(10, 120);
-        setTimeout(() => { servo(12, 0); }, 500);
+        setTimeout(() => { servo(10, 120); }, to10);
+        setTimeout(() => { servo(12, 0); }, to12);
       }
     } else {
       console.log(`Set ac to Off`);
       if (!process.env.DEBUG) {
-        servo(10, 60);
-        setTimeout(() => { servo(12, 180); }, 500);
+        setTimeout(() => { servo(10, 60); }, to10);
+        setTimeout(() => { servo(12, 180); }, to12);
       }
     }
   }

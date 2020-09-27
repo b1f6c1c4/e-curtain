@@ -12,11 +12,13 @@ def dc(angle):
 def goLeft():
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(port, GPIO.OUT)
+    GPIO.output(port, GPIO.LOW)
+    sleep(0.1)
     p = GPIO.PWM(port, 100)
     p.start(dc(0))
     for i in range(0, 76, 1):
         p.ChangeDutyCycle(dc(i))
-        sleep(0.1)
+        sleep(0.03)
     p.stop()
     GPIO.output(port, GPIO.LOW)
     GPIO.cleanup()
@@ -24,11 +26,13 @@ def goLeft():
 def goRight():
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(port, GPIO.OUT)
+    GPIO.output(port, GPIO.LOW)
+    sleep(0.1)
     p = GPIO.PWM(port, 100)
     p.start(dc(75))
     for i in range(75, -1, -1):
         p.ChangeDutyCycle(dc(i))
-        sleep(0.1)
+        sleep(0.03)
     p.stop()
     GPIO.output(port, GPIO.LOW)
     GPIO.cleanup()
