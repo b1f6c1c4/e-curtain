@@ -6,6 +6,7 @@ const dayjs = require('dayjs');
 const isoWeek = require('dayjs/plugin/isoWeek')
 const Datastore = require('nedb');
 const servo = require('../backend/servo');
+const slowServo = require('../backend/slow-servo');
 const rf = require('../backend/rf');
 const weather = require('../backend/weather');
 const core = require('./core');
@@ -75,7 +76,7 @@ const tick = async () => {
           method: 'post',
           url: `http://controller-1:80/${res.fan ? 'on' : 'off'}`,
         });
-      }, 5000);
+      }, 2000);
     }
   }
   if (res.windows !== ores.windows) {
@@ -96,11 +97,16 @@ const tick = async () => {
       });
     }
   }
-  if (res.register !== ores.register) {
-    console.log(`Set register to ${res.register}`);
+  if (res.register1 !== ores.register1) {
+    console.log(`Set register1 to ${res.register1}`);
     if (!process.env.DEBUG) {
-      setTimeout(() => { servo(8, 180 - res.register * (180 - 85)); }, 2500);
-      setTimeout(() => { servo(16, 70 - res.register * (70 - 0)); }, 7500);
+      setTimeout(() => { servo(16, 100 - res.register1 * (100 - 0)); }, 250);
+    }
+  }
+  if (res.register2 !== ores.register2) {
+    console.log(`Set register2 to ${res.register2}`);
+    if (!process.env.DEBUG) {
+      setTimeout(() => { slowServo(res.register2); }, 750);
     }
   }
   if (res.ac !== ores.ac || res.acFan !== ores.acFan) {
@@ -108,43 +114,43 @@ const tick = async () => {
       console.log(`Set ac to heat I`);
       if (!process.env.DEBUG) {
         servo(10, 30);
-        setTimeout(() => { servo(12, 10); }, 5000);
+        setTimeout(() => { servo(12, 10); }, 500);
       }
     } else if (res.ac === +2) {
       console.log(`Set ac to heat II`);
       if (!process.env.DEBUG) {
         servo(10, 0);
-        setTimeout(() => { servo(12, 10); }, 5000);
+        setTimeout(() => { servo(12, 10); }, 500);
       }
     } else if (res.ac === -1) {
       console.log(`Set ac to cool I`);
       if (!process.env.DEBUG) {
         servo(10, 150);
-        setTimeout(() => { servo(12, 170); }, 5000);
+        setTimeout(() => { servo(12, 170); }, 500);
       }
     } else if (res.ac === -2) {
       console.log(`Set ac to cool II`);
       if (!process.env.DEBUG) {
         servo(10, 180);
-        setTimeout(() => { servo(12, 170); }, 5000);
+        setTimeout(() => { servo(12, 170); }, 500);
       }
     } else if (res.acFan === +1) {
       console.log(`Set ac to fan I`);
       if (!process.env.DEBUG) {
         servo(10, 90);
-        setTimeout(() => { servo(12, 0); }, 5000);
+        setTimeout(() => { servo(12, 0); }, 500);
       }
     } else if (res.acFan === +2) {
       console.log(`Set ac to fan I`);
       if (!process.env.DEBUG) {
         servo(10, 120);
-        setTimeout(() => { servo(12, 0); }, 5000);
+        setTimeout(() => { servo(12, 0); }, 500);
       }
     } else {
       console.log(`Set ac to Off`);
       if (!process.env.DEBUG) {
         servo(10, 60);
-        setTimeout(() => { servo(12, 180); }, 5000);
+        setTimeout(() => { servo(12, 180); }, 500);
       }
     }
   }

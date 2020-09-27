@@ -217,15 +217,20 @@ module.exports = {
     if (ac < -2)
       ac = -2;
 
-    let register = 0;
+    let register1 = 0;
+    let register2 = 1;
     if (ac !== 0) {
-      register = k;
+      register1 = k;
+      register2 = k >= 0.8 ? 0 : 1;
     } else if (state.s === 's' || state.s === 'sx') {
-      register = 1;
+      register1 = 1;
+      register2 = 0;
       acFan = 2;
     }
 
     if (ac === 0 && f012) {
+      register1 = 1;
+      register2 = 0;
       acFan = 2;
     }
 
@@ -249,7 +254,8 @@ module.exports = {
       fan,
       windows,
       curtain,
-      register,
+      register1,
+      register2,
       ac,
       acFan,
     };
