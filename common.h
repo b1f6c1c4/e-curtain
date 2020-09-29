@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <array>
 
 using size_t = std::size_t;
@@ -22,10 +23,24 @@ struct sink {
 template <size_t N>
 struct sink_source : public source<N>, public sink<N> { };
 
-template <size_t N, typename Tb>
-decltype(auto) operator>>(source<N> &a, Tb &b) {
-    arr_t<N> v;
-    a >> v;
-    b << v;
-    return b;
+template <size_t N, typename T>
+decltype(auto) operator>>(std::array<T, N> &s, arr_t<N> &v) {
+    arr_t<1> buf;
+    for (size_t i{ 0 }; i < N; i++) {
+        s[i] >> buf;
+        v[i] = buf[0];
+    }
+    return s;
+}
+
+template <size_t N, typename T>
+decltype(auto) operator<<(std::array<T, N> &s, const arr_t<N> &v) {
+    for (size_t i{ 0 }; i < N; i++)
+        s[i] << std::array{v[i]};
+    return s;
+}
+
+template <typename T1, typename T2>
+decltype(auto) operator>>(T1 &&l, T2 &&r) {
+    return std::forward<T2>(r) << std::forward<T1>(l);
 }
