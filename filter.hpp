@@ -1,4 +1,4 @@
-#include "common.h"
+#include "common.hpp"
 
 struct fir_filter : public sink_source<1> {
     fir_filter();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.h"
+#include "common.hpp"
 #include <string>
 
 struct si7021 : public source<2> {
