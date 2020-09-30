@@ -7,15 +7,16 @@
 #include "udp_client.hpp"
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: e_curtain_cxx <host> <port>";
+    if (argc != 4) {
+        std::cerr << "Usage: e_curtain_cxx <host> <port> <tag>";
         return 1;
     }
 
     si7021 sensor{ "/dev/i2c-1" };
     std::array<lp_filter, 2> lps;
     std::array<df_filter, 2> dfs;
-    udp_client<4> udp{ argv[1], std::atoi(argv[2]) };
+    udp_client<5> udp{ argv[1], std::atoi(argv[2]) };
+    auto tag = std::atoi(argv[3]);
 
     using namespace std::chrono_literals;
     auto dt = 200ms; // 5Hz
@@ -32,7 +33,7 @@ int main(int argc, char *argv[]) {
         tr0 >> lps >> tr;
         tr0 >> dfs >> dtr;
 
-        udp << std::array{ tr[0], tr[1], dtr[0], dtr[1] };
+        udp << std::array{ static_cast<double>(tag), tr[0], tr[1], dtr[0], dtr[1] };
 
         auto aft{ std::chrono::system_clock::now() };
         auto diff{ clk - aft };

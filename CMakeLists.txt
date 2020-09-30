@@ -15,3 +15,5 @@ if(DEFINED ENV{TOOLCHAIN})
 endif()
 
 add_executable(e_curtain_cxx main.cpp filter.cpp filter.hpp common.hpp udp_client.hpp si7021.hpp si7021.cpp)
+
+add_executable(logger logger.cpp common.hpp udp_server.hpp)
