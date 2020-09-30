@@ -24,7 +24,7 @@ source<2> &si7021::operator>>(arr_t<2> &r) {
     ioctl_msg[0].addr = 0x40;
     ioctl_msg[0].buf = addr;
     ioctl_msg[0].flags = 0;
-    ioctl_msg[1].len = 1;
+    ioctl_msg[1].len = 2;
     ioctl_msg[1].addr = 0x40;
     ioctl_msg[1].buf = buf;
     ioctl_msg[1].flags = I2C_M_RD;
@@ -39,11 +39,12 @@ source<2> &si7021::operator>>(arr_t<2> &r) {
 
     auto v = static_cast<unsigned int>(buf[0]) << 8u | static_cast<unsigned int>(buf[1]);
     r[1] = 125 * static_cast<double>(v) / 65536 - 6;
-    v = static_cast<unsigned int>(buf[0]) << 8u | static_cast<unsigned int>(buf[1]);
+
 
     addr[0] = 0xe0;
     if (ioctl(_fd, I2C_RDWR, &ioctl_data) < 0)
         throw std::runtime_error("Cannot read from i2c bus");
+    v = static_cast<unsigned int>(buf[0]) << 8u | static_cast<unsigned int>(buf[1]);
     r[0] = 175.72 * v / 65536 - 46.85;
     return *this;
 }
