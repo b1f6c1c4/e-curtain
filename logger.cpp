@@ -19,6 +19,8 @@ int main() {
     auto f12{ std::numeric_limits<double>::quiet_NaN() };
     auto ac{ std::numeric_limits<double>::quiet_NaN() };
 
+    auto clk0{ std::chrono::steady_clock::now() };
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
     while (true) {
@@ -47,8 +49,7 @@ int main() {
                     continue;
             }
             arr_t<10> log;
-            reinterpret_cast<std::chrono::steady_clock::rep *>(log.data())[0] =
-                    std::chrono::steady_clock::now().time_since_epoch().count();
+            log[0] = (std::chrono::steady_clock::now() - clk0).count();
             log[1] = t0;
             log[2] = h0;
             log[3] = f012;
