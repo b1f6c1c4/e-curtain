@@ -38,10 +38,15 @@ sink<1> &fir_filter::operator<<(const arr_t<1> &r) {
 }
 
 source<1> &lp_filter::operator>>(arr_t<1> &r) {
+    auto t{ 0.0 };
+    for (size_t i{ 0 }; i <= _order; i++) {
+        t += lp_b[i];
+    }
     r[0] = 0;
     for (size_t i{ 0 }; i <= _order; i++) {
         r[0] += _circular[i] * lp_b[(_order + _cursor - i) % (_order + 1)];
     }
+    r[0] /= t;
     return *this;
 }
 

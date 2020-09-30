@@ -44,15 +44,15 @@ async function run() {
     if (!f12) {
       reg1 = 0;
     }
-  } else if (f12 >= 1) {
-    reg2 = 2 - f12;
+  } else if (f12 >= 4 / 3) {
+    reg2 = 3 - 3 * f12 / 2;
   } else {
-    reg1 = f12;
+    reg1 = 3 * f12 / 4;
   }
   console.log({ f012, f12, reg1, reg2, ac });
   shelljs.exec(`ssh pi@192.168.1.118 ./e-curtain/backend/servo.py 16 ${75 * reg2}`, () => {});
   await sleep(4000);
-  shelljs.exec(`ssh pi@192.168.1.118 ./e-curtain/backend/servo.py 8 ${95 * reg1}`, () => {});
+  shelljs.exec(`ssh pi@192.168.1.118 ./e-curtain/backend/servo.py 8 ${180 - 90 * reg1}`, () => {});
   await sleep(4000);
   if (ac >= +2) {
     shelljs.exec(`ssh pi@192.168.1.118 ./e-curtain/backend/servo.py 10 0`, () => {});

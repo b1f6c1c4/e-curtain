@@ -1,8 +1,6 @@
 #include "common.hpp"
 #include <iostream>
 #include <chrono>
-#include <thread>
-#include <atomic>
 #include <limits>
 #include "udp_server.hpp"
 
