@@ -14,6 +14,10 @@ if(DEFINED ENV{TOOLCHAIN})
     set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 endif()
 
-add_executable(e_curtain_cxx main.cpp filter.cpp filter.hpp common.hpp udp_client.hpp si7021.hpp si7021.cpp)
+add_executable(controller-12 main.cpp filter.cpp filter.hpp common.hpp udp_client.hpp si7021.hpp si7021.cpp mpc.cpp mpc.hpp)
 
-add_executable(logger logger.cpp common.hpp udp_server.hpp)
+include_directories(gen gen-include)
+add_executable(controller-0 controller-0.cpp common.hpp udp_server.hpp
+        gen/rt_nonfinite.c gen/rtGetNaN.c gen/rtGetInf.c gen/mpcmoveCodeGeneration_data.c
+        gen/mpcmoveCodeGeneration_initialize.c gen/mpcmoveCodeGeneration_terminate.c gen/mpcmoveCodeGeneration.c
+        gen/mpcblock_optimizer.c gen/qpkwik.c gen/minOrMax.c gen/qr.c gen/xnrm2.c gen/xgerc.c gen/norm.c)
