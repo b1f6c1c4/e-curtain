@@ -4,11 +4,24 @@
 #include "udp_server.hpp"
 #include "filter.hpp"
 #include "mpc.hpp"
+#include "rf.hpp"
 #include "sync.hpp"
 
 using namespace std::chrono_literals;
 
 int main() {
+    rf rf_inst{};
+    synchronizer<0> rf_s{"rf_s", 0s, [&]() {
+        arr_t<4> v;
+        rf_inst >> v;
+        std::cout << v[0] << " ";
+        std::cout << v[1] << " ";
+        std::cout << v[2] << " ";
+        std::cout << v[3] << std::endl;
+    }};
+
+    /*
+
     udp_server<5> udp{ 23333 };
     // Layout:
     // udp_s[0]: t0
@@ -86,4 +99,5 @@ int main() {
         arr_t<3> v_mpc;
         mpc_s >> v_mpc;
     }};
+     */
 }

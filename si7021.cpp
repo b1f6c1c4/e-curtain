@@ -8,7 +8,7 @@
 
 si7021::si7021(const std::string &dev) : _fd{ open(dev.c_str(), O_RDWR) } {
     if (_fd < 0)
-        throw std::runtime_error("Cannot open dev");
+        throw std::runtime_error("Cannot open i2c dev");
 }
 
 si7021::~si7021() {

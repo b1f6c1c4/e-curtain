@@ -22,9 +22,27 @@ struct arr_t : public std::array<double, N> {
         return r;
     }()} { }
 
+    explicit arr_t(double v0) {
+        for (auto &v : *this)
+            v = v0;
+    }
+
+    template <typename T>
+    arr_t(const std::array<T, N> &o) : std::array<double, N>{[&o]() constexpr {
+        std::array<double, N> r;
+        for (size_t i{ 0 }; i < N; i++)
+            r[i] = o[i];
+        return r;
+    }()} {}
+
     template <typename ... TArgs>
     explicit arr_t(TArgs && ... l) : std::array<double, N>{std::forward<TArgs>(l)...} { }
 };
+
+template <size_t N>
+constexpr auto operator==(const arr_t<N> &l, const arr_t<N> &r) {
+    return std::equal(l.begin(), l.end(), r.begin());
+}
 
 template <size_t N>
 struct source {

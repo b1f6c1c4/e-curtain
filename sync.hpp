@@ -13,11 +13,11 @@ template <size_t N>
 struct synchronizer : public sink_source<N> {
     template <typename Tt>
     explicit synchronizer(std::string name, Tt &&dt)
-            : _name{std::move(name)}, _dt{ dt }, _mtx{}, _clk{}, _callback{}, _thread(&synchronizer::thread_entry, this) { }
+            : _name{std::move(name)}, _dt{ dt }, _v{ arr_t<N>{} }, _mtx{}, _clk{}, _callback{}, _thread(&synchronizer::thread_entry, this) { }
 
     template <typename Tt, typename Tf>
     synchronizer(std::string name, Tt &&dt, const Tf &cb)
-            : _name{std::move(name)}, _dt{ dt }, _mtx{}, _clk{}, _callback{ cb }, _thread(&synchronizer::thread_entry, this) { }
+            : _name{std::move(name)}, _dt{ dt }, _v{ arr_t<N>{} }, _mtx{}, _clk{}, _callback{ cb }, _thread(&synchronizer::thread_entry, this) { }
 
     virtual ~synchronizer() {
         _thread.join();
