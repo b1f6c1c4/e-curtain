@@ -1,14 +1,19 @@
 #include "mpc.hpp"
 
-mpc::mpc() : silence(false), k(2.0 / 3), _u{}, _state_data{} { }
+mpc::mpc() : _u{}, _state_data{} { }
 
-sink<5> &mpc::operator<<(const arr_t<5> &r) {
+sink<7> &mpc::operator<<(const arr_t<7> &r) {
     struct4_T rr{};
-    rr.signals.ref[0] = r[0];
-    rr.signals.ref[1] = r[1];
-    rr.signals.md = r[2];
-    rr.signals.ym[0] = r[3];
-    rr.signals.ym[1] = r[4];
+    rr.signals.md = r[0]; // t0d
+    rr.signals.ym[0] = r[1]; // t1
+    rr.signals.ym[1] = r[2]; // t2
+    rr.limits.umax[0] = +2;
+    rr.limits.umax[1] = +2;
+    rr.limits.umax[3] = r[3] ? 0 : 2; // f012
+    rr.signals.ref[0] = r[4]; // tp1
+    rr.signals.ref[1] = r[5]; // tp2
+    rr.weights.y[0] = 1 - r[6]; // 1 - k
+    rr.weights.y[1] = r[6]; // k
     struct9_T info;
     mpcmoveCodeGeneration(&_state_data, &rr, _u, &info);
     return *this;

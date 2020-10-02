@@ -1,67 +1,92 @@
 #include "common.hpp"
-#include <iostream>
 #include <chrono>
-#include <limits>
+#include <iomanip>
+#include <cmath>
 #include "udp_server.hpp"
 #include "filter.hpp"
 #include "mpc.hpp"
+#include "sync.hpp"
+
+#define INV -114514
+
+using namespace std::chrono_literals;
 
 int main() {
     udp_server<5> udp{ 23333 };
+    // Layout:
+    // udp_s[0]: t0
+    // udp_s[1]: t1
+    // udp_s[2]: t2
+    // udp_s[3]: silence
+    // udp_s[4]: ts1
+    // udp_s[5]: ts2
+    // udp_s[6]: k
+    synchronizer<7> udp_s{"udp_s", 0s};
 
-    auto t0{ std::numeric_limits<double>::quiet_NaN() };
-    auto h0{ std::numeric_limits<double>::quiet_NaN() };
-    auto t1{ std::numeric_limits<double>::quiet_NaN() };
-    auto h1{ std::numeric_limits<double>::quiet_NaN() };
-    auto t2{ std::numeric_limits<double>::quiet_NaN() };
-    auto h2{ std::numeric_limits<double>::quiet_NaN() };
-    auto f012{ std::numeric_limits<double>::quiet_NaN() };
-    auto f12{ std::numeric_limits<double>::quiet_NaN() };
-    auto ac{ std::numeric_limits<double>::quiet_NaN() };
+    t0d_filter t0d;
+    synchronizer<1> t0d_s{"t0d_s", 10min, [&](){
+        std::cout << now{} << " t0d" << std::endl;
+        arr_t<7> v;
+        udp_s >> v;
+        if (std::isnan(v[0]))
+            return;
+        t0d << arr_t<1>{ v[0] };
+        t0d | t0d_s;
+    }};
 
-    auto clk0{ std::chrono::steady_clock::now() };
+    mpc m;
+    synchronizer<3> mpc_s{"mpc_s", 30s, [&](){
+        std::cout << now{} << " mpc" << std::endl;
+        arr_t<7> v_udp;
+        udp_s >> v_udp;
+        arr_t<1> v_t0d;
+        t0d_s >> v_t0d;
+        m << arr_t<7>{
+            v_t0d[0], // t0d
+            v_udp[1], // t1
+            v_udp[2], // t2
+            v_udp[3], // silence
+            v_udp[4], // tp1
+            v_udp[5], // tp2
+            v_udp[6], // k
+        };
+        m | mpc_s;
+    }};
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-    while (true) {
-        {
-            arr_t<5> d;
-            udp >> d;
-            switch (static_cast<int>(d[0])) {
-                case 0:
-                    t0 = d[1];
-                    h0 = d[2];
-                    break;
-                case 1:
-                    t1 = d[1];
-                    h1 = d[2];
-                    break;
-                case 2:
-                    t2 = d[1];
-                    h2 = d[2];
-                    break;
-                case 3:
-                    f012 = d[1];
-                    f12 = d[2];
-                    ac = d[3];
-                    break;
-                default:
-                    continue;
-            }
-            arr_t<10> log;
-            log[0] = (std::chrono::steady_clock::now() - clk0).count();
-            log[1] = t0;
-            log[2] = h0;
-            log[3] = f012;
-            log[4] = f12;
-            log[5] = ac;
-            log[6] = t1;
-            log[7] = t2;
-            log[8] = h1;
-            log[9] = h2;
-            std::cout.write(reinterpret_cast<const char *>(log.data()), sizeof(double) * log.size());
-            std::cout.flush();
+    udp_s.set_callback([&](){
+        arr_t<5> v_udp;
+        udp >> v_udp;
+        std::cout << now{} << " udp" << v_udp[0] << std::endl;
+        arr_t<7> v_orig;
+        udp_s >> v_orig;
+        if (v_udp[0] == 0) {
+            v_orig[0] = v_udp[1];
+            udp_s << v_orig;
+        } else if (v_udp[0] == 1) {
+            v_orig[1] = v_udp[1];
+            udp_s << v_orig;
+        } else if (v_udp[0] == 2) {
+            v_orig[2] = v_udp[1];
+            udp_s << v_orig;
+        } else if (v_udp[0] == 3) {
+            v_orig[3] = v_udp[1];
+            v_orig[4] = v_udp[2];
+            v_orig[5] = v_udp[3];
+            v_orig[6] = v_udp[4];
+            udp_s << v_orig;
+            mpc_s.immediate();
         }
-    }
-#pragma clang diagnostic pop
+    });
+
+    auto pwm_ticks{ INV };
+    auto as_fan{ INV };
+    auto as_window{ INV };
+    auto as_curtain{ INV };
+    auto as_ac{ INV };
+    auto as_ac_fan{ INV };
+    auto as_acx{ INV };
+    synchronizer<0> pwm_s{"pwm_s", 1s, [&](){
+        arr_t<3> v_mpc;
+        mpc_s >> v_mpc;
+    }};
 }

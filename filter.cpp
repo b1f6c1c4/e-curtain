@@ -53,7 +53,7 @@ source<1> &lp_filter::operator>>(arr_t<1> &r) {
 
 t0d_filter::t0d_filter() : _empty{ true }, _cursor{ 0 }, _circular{} { }
 
-sink<1> t0d_filter::operator<<(const arr_t<1> &r) {
+sink<1> &t0d_filter::operator<<(const arr_t<1> &r) {
     if (_empty) {
         for (auto &v : _circular)
             v = r[0];

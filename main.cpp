@@ -14,8 +14,7 @@ int main(int argc, char *argv[]) {
 
     si7021 sensor{ "/dev/i2c-1" };
     std::array<lp_filter, 2> lps;
-    std::array<df_filter, 2> dfs;
-    udp_client<5> udp{ argv[1], std::atoi(argv[2]) };
+    udp_client<3> udp{ argv[1], std::atoi(argv[2]) };
     auto tag = std::atoi(argv[3]);
 
     using namespace std::chrono_literals;
@@ -27,13 +26,11 @@ int main(int argc, char *argv[]) {
     while (true) {
         clk += dt;
 
-        arr_t<2> tr0, tr, dtr;
-        sensor >> tr0;
+        arr_t<2> tr;
+        sensor | lps;
+        lps >> tr;
 
-        tr0 >> lps >> tr;
-        tr0 >> dfs >> dtr;
-
-        udp << std::array{ static_cast<double>(tag), tr[0], tr[1], dtr[0], dtr[1] };
+        udp << std::array{ static_cast<double>(tag), tr[0], tr[1] };
 
         auto aft{ std::chrono::system_clock::now() };
         auto diff{ clk - aft };

@@ -2,11 +2,25 @@
 
 #include <cstddef>
 #include <array>
+#include <iostream>
+#include <iomanip>
+#include <chrono>
+#include <limits>
 
 using size_t = std::size_t;
 
 template <size_t N>
-using arr_t = std::array<double, N>;
+struct arr_t : public std::array<double, N> {
+    arr_t() : std::array<double, N>{[]() constexpr {
+        std::array<double, N> r;
+        for (auto &v : r)
+            v = std::numeric_limits<double>::quiet_NaN();
+        return r;
+    }()} { }
+
+    template <typename ... TArgs>
+    explicit arr_t(TArgs && ... l) : std::array<double, N>{std::forward<TArgs>(l)...} { }
+};
 
 template <size_t N>
 struct source {
@@ -34,13 +48,34 @@ decltype(auto) operator>>(std::array<T, N> &s, arr_t<N> &v) {
 }
 
 template <size_t N, typename T>
-decltype(auto) operator<<(std::array<T, N> &s, const arr_t<N> &v) {
+decltype(auto) operator<<(std::array<T, N> &s, arr_t<N> &&v) {
     for (size_t i{ 0 }; i < N; i++)
         s[i] << std::array{v[i]};
     return s;
 }
 
-template <typename T1, typename T2>
-decltype(auto) operator>>(T1 &&l, T2 &&r) {
-    return std::forward<T2>(r) << std::forward<T1>(l);
+template <typename T, size_t N>
+decltype(auto) operator|(source<N> &a, T &b) {
+    arr_t<N> v;
+    a >> v;
+    b << v;
+    return b;
 }
+
+template <typename T, size_t N>
+decltype(auto) operator|(source<N> &a, std::array<T, N> &b) {
+    arr_t<N> v;
+    a >> v;
+    b << v;
+    return b;
+}
+
+struct now {
+    friend inline decltype(auto) operator<<(std::ostream &os, now) {
+        auto now{ std::chrono::system_clock::now() };
+        auto itt{ std::chrono::system_clock::to_time_t(now) };
+        os << std::put_time(gmtime(&itt), "%FT%TZ.");
+        os << std::setfill('0') << std::setw(9) << (now.time_since_epoch().count() % 1000000000);
+        return os;
+    }
+};
