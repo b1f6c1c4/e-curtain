@@ -1,13 +1,10 @@
 #include "common.hpp"
 #include <chrono>
 #include <iomanip>
-#include <cmath>
 #include "udp_server.hpp"
 #include "filter.hpp"
 #include "mpc.hpp"
 #include "sync.hpp"
-
-#define INV -114514
 
 using namespace std::chrono_literals;
 
@@ -28,7 +25,7 @@ int main() {
         std::cout << now{} << " t0d" << std::endl;
         arr_t<7> v;
         udp_s >> v;
-        if (std::isnan(v[0]))
+        if (IS_INV(v[0]))
             return;
         t0d << arr_t<1>{ v[0] };
         t0d | t0d_s;

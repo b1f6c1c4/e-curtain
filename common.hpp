@@ -6,15 +6,19 @@
 #include <iomanip>
 #include <chrono>
 #include <limits>
+#include <cmath>
 
 using size_t = std::size_t;
+
+#define INV std::numeric_limits<double>::quiet_NaN()
+#define IS_INV(x) std::isnan((x))
 
 template <size_t N>
 struct arr_t : public std::array<double, N> {
     arr_t() : std::array<double, N>{[]() constexpr {
         std::array<double, N> r;
         for (auto &v : r)
-            v = std::numeric_limits<double>::quiet_NaN();
+            v = INV;
         return r;
     }()} { }
 
