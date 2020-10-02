@@ -17,15 +17,15 @@ if(DEFINED ENV{TOOLCHAIN})
     set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 endif()
 
-include_directories(gen gen-include)
+include_directories(matlab libdumbac)
+
+file(GLOB LIBDUMBAC_SRC libdumbac/*.c)
+add_library(libdumbac STATIC ${LIBDUMBAC_SRC})
 
 add_executable(controller-12 main.cpp common.hpp udp_client.hpp sync.hpp filter.cpp filter.hpp si7021.cpp si7021.hpp)
 
-add_executable(controller-0 controller-0.cpp common.hpp udp_server.hpp sync.hpp filter.cpp filter.hpp mpc.cpp mpc.hpp
-        gen/rt_nonfinite.c gen/rtGetNaN.c gen/rtGetInf.c gen/mpcmoveCodeGeneration_data.c
-        gen/mpcmoveCodeGeneration_initialize.c gen/mpcmoveCodeGeneration_terminate.c gen/mpcmoveCodeGeneration.c
-        gen/mpcblock_optimizer.c gen/mpc_calculatehessian.c gen/mpc_checkhessian.c gen/xpotrf.c gen/minOrMax.c
-        gen/norm.c gen/trisolve.c gen/mpc_solveQP.c gen/qpkwik.c gen/qr.c gen/xnrm2.c gen/xgerc.c gen/xgerc.c)
+add_executable(controller-0 controller-0.cpp common.hpp udp_server.hpp sync.hpp filter.cpp filter.hpp mpc.cpp mpc.hpp)
 
 target_link_libraries(controller-0 Threads::Threads)
 target_link_libraries(controller-0 ${libatomic})
+target_link_libraries(controller-0 libdumbac)
