@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 extern "C" {
-#include "mpcmoveCodeGeneration.h"
+#include "libdumbac/mpcmoveCodeGeneration.h"
 }
 
 struct mpc : public sink<7>, public source<3> {
