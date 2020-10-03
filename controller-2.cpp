@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     si7021 sensor{ "/dev/i2c-1" };
     std::array<lp_filter, 2> lps;
     udp_client<3> udp{ "controller-0", PORT };
-    auto tag{ 1 };
+    auto tag{ 2 };
 
     using namespace std::chrono_literals;
     synchronizer<0> sen_s{"sen_s", 200ms, [&](){

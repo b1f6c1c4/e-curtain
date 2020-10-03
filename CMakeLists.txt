@@ -22,9 +22,19 @@ include_directories(include matlab)
 file(GLOB LIBDUMBAC_SRC libdumbac/*.c)
 add_library(dumbac STATIC ${LIBDUMBAC_SRC})
 
-add_executable(controller-12 controller-1.cpp include/common.hpp include/net/udp_client.hpp include/sync.hpp middleware/dsp/filter.cpp include/dsp/filter.hpp middleware/io/si7021.cpp include/io/si7021.hpp)
+file(GLOB MIDDLEWARE_SRC middleware/**/*.cpp)
+add_library(middleware STATIC ${MIDDLEWARE_SRC})
 
-add_executable(controller-0 controller-0.cpp include/common.hpp include/net/udp_server.hpp include/sync.hpp middleware/dsp/filter.cpp include/dsp/filter.hpp middleware/dsp/mpc.cpp include/dsp/mpc.hpp include/dsp/debouncer.hpp middleware/io/rf.cpp include/io/rf.hpp middleware/io/buzzer.cpp include/io/buzzer.hpp)
+add_executable(controller-0 controller-0.cpp include/common.hpp include/net/udp_server.hpp include/sync.hpp include/dsp/filter.hpp include/dsp/mpc.hpp include/dsp/debouncer.hpp include/io/rf.hpp include/io/buzzer.hpp)
+add_executable(controller-1 controller-1.cpp include/common.hpp include/net/udp_client.hpp include/sync.hpp include/dsp/filter.hpp include/io/si7021.hpp)
+add_executable(controller-2 controller-2.cpp include/common.hpp include/net/udp_client.hpp include/sync.hpp include/dsp/filter.hpp include/io/si7021.hpp)
+
+target_link_libraries(controller-0 dumbac)
+
+target_link_libraries(controller-0 middleware)
+target_link_libraries(controller-1 middleware)
+target_link_libraries(controller-2 middleware)
 
 target_link_libraries(controller-0 Threads::Threads)
-target_link_libraries(controller-0 dumbac)
+target_link_libraries(controller-1 Threads::Threads)
+target_link_libraries(controller-2 Threads::Threads)

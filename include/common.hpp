@@ -13,6 +13,8 @@ using size_t = std::size_t;
 #define INV std::numeric_limits<double>::quiet_NaN()
 #define IS_INV(x) std::isnan((x))
 
+#define PORT 33706
+
 template <size_t N>
 struct arr_t : public std::array<double, N> {
     arr_t() : std::array<double, N>{[]() constexpr {
@@ -88,7 +90,8 @@ template <typename T, size_t N>
 decltype(auto) operator|(source<N> &a, std::array<T, N> &b) {
     arr_t<N> v;
     a >> v;
-    b << v;
+    for (size_t i{ 0 }; i < N; i++)
+        b[i] << arr_t<1>{ v[i] };
     return b;
 }
 
