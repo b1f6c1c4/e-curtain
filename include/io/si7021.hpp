@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include <string>
 
 struct si7021 : public source<2> {
     si7021(const std::string &dev);

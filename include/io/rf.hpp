@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include <functional>
 #include <thread>
-#include "debouncer.hpp"
+#include "dsp/debouncer.hpp"
 
 struct rf : public source<4> {
     rf(const std::string &dev);

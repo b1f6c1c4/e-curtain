@@ -1,10 +1,10 @@
-#include "common.hpp"
+#include "include/common.hpp"
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include "si7021.hpp"
-#include "filter.hpp"
-#include "udp_client.hpp"
+#include "io/si7021.hpp"
+#include "dsp/filter.hpp"
+#include "net/udp_client.hpp"
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {

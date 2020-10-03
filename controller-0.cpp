@@ -1,10 +1,10 @@
-#include "common.hpp"
+#include "include/common.hpp"
 #include <chrono>
 #include <iomanip>
-#include "udp_server.hpp"
-#include "filter.hpp"
-#include "mpc.hpp"
-#include "rf.hpp"
+#include "net/udp_server.hpp"
+#include "dsp/filter.hpp"
+#include "dsp/mpc.hpp"
+#include "io/rf.hpp"
 #include "sync.hpp"
 
 using namespace std::chrono_literals;
@@ -14,6 +14,7 @@ int main() {
     synchronizer<0> rf_s{"rf_s", 0s, [&]() {
         arr_t<4> v;
         rf_inst >> v;
+        std::cout << "Key pressed: ";
         std::cout << v[0] << " ";
         std::cout << v[1] << " ";
         std::cout << v[2] << " ";

@@ -4,7 +4,7 @@
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
-#include "buzzer.hpp"
+#include "io/buzzer.hpp"
 
 template <size_t N>
 struct debouncer : public sink_source<N> {

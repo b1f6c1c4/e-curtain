@@ -1,4 +1,4 @@
-#include "si7021.hpp"
+#include "io/si7021.hpp"
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
