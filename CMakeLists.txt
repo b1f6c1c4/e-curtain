@@ -24,7 +24,7 @@ add_library(dumbac STATIC ${LIBDUMBAC_SRC})
 
 add_executable(controller-12 main.cpp common.hpp udp_client.hpp sync.hpp filter.cpp filter.hpp si7021.cpp si7021.hpp)
 
-add_executable(controller-0 controller-0.cpp common.hpp udp_server.hpp sync.hpp filter.cpp filter.hpp mpc.cpp mpc.hpp debouncer.hpp rf.cpp rf.hpp)
+add_executable(controller-0 controller-0.cpp common.hpp udp_server.hpp sync.hpp filter.cpp filter.hpp mpc.cpp mpc.hpp debouncer.hpp rf.cpp rf.hpp buzzer.cpp buzzer.hpp)
 
 target_link_libraries(controller-0 Threads::Threads)
 target_link_libraries(controller-0 dumbac)

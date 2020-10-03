@@ -4,6 +4,7 @@
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
+#include "buzzer.hpp"
 
 template <size_t N>
 struct debouncer : public sink_source<N> {
@@ -28,6 +29,7 @@ struct debouncer : public sink_source<N> {
                         _stage1 = r;
                     }
                 } else { // slow transform
+                    _bz.on();
                     _state = STAGE2;
                     _stage2 = _stage1; // confirm the old one
                     _stage25 = _stage2;
@@ -53,6 +55,7 @@ struct debouncer : public sink_source<N> {
                 } else { // slow transform
                     if (r == zero) { // this is actually a release
                         _state = IDLE;
+                        _bz.off();
                         std::lock_guard l{ _mtx3 };
                         _stage3 = _stage25;
                         _c3 = now; // start stage3
@@ -86,6 +89,8 @@ struct debouncer : public sink_source<N> {
 private:
     typedef std::chrono::steady_clock clk;
     static const arr_t<N> zero;
+
+    buzzer _bz;
 
     enum {
         // nothing pressed at all (may have confirmed press + release)
