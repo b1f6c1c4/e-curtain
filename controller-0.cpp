@@ -10,7 +10,7 @@
 using namespace std::chrono_literals;
 
 int main() {
-    rf rf_inst{};
+    rf rf_inst{"/dev/gpiochip0"};
     synchronizer<0> rf_s{"rf_s", 0s, [&]() {
         arr_t<4> v;
         rf_inst >> v;
