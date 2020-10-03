@@ -21,13 +21,16 @@ struct debouncer : public sink_source<N> {
                 break;
             case STAGE1:
                 if (now < _c1 + _margin1) { // fast transform
-                    if (r != _stage1) {
+                    if (r == zero) {
+                        _state = IDLE;
+                    } else if (r != _stage1) {
                         _c1 = now; // restart stage1
                         _stage1 = r;
                     }
                 } else { // slow transform
                     _state = STAGE2;
                     _stage2 = _stage1; // confirm the old one
+                    _stage25 = _stage2;
                     if (r != _stage1) {
                         _state = STAGE21;
                         _c1 = now; // the new one enters stage1
@@ -42,24 +45,24 @@ struct debouncer : public sink_source<N> {
                 }
                 break;
             case STAGE21:
-                if (now < _c1 + _margin1) { // fast transform
+                if (now < _c1 + _margin21) { // fast transform
                     if (r != _stage1) {
-                        _c1 = now; // restart stage1
+                        _c1 = now; // restart stage21
                         _stage1 = r;
                     }
                 } else { // slow transform
                     if (r == zero) { // this is actually a release
                         _state = IDLE;
                         std::lock_guard l{ _mtx3 };
-                        _stage3 = _stage2;
+                        _stage3 = _stage25;
                         _c3 = now; // start stage3
                         _cv3.notify_one();
                     } else {
                         _state = STAGE2;
-                        // confirm the old one by merging
-                        for (size_t i{0}; i < N; i++)
-                            if (_stage1[i] != 0.0)
-                                _stage2[i] = 1.0;
+                        _stage2 = _stage1; // confirm the old one
+                        for (size_t i{0}; i < N; i++) // merge it
+                            if (_stage2[i] != 0.0)
+                                _stage25[i] = 1.0;
                         if (r != _stage1) {
                             _state = STAGE21;
                             _c1 = now; // the new one enters stage1
@@ -76,6 +79,7 @@ struct debouncer : public sink_source<N> {
         while (_stage3 == zero || clk::now() >= _c3 + _margin3)
             _cv3.wait(l);
         r = _stage3;
+        _stage3 = zero;
         return *this;
     }
 
@@ -101,11 +105,19 @@ private:
     // Time to confirm a brief [press|release]
     static constexpr auto _margin1 = []() constexpr {
         using namespace std::chrono_literals;
-        return 30ms;
+        return 50ms;
     }();
 
-    // The confirmed press (aggregated), managed by operator<<
+    // Time to confirm a brief [press|release] when there is already a confirmed press
+    static constexpr auto _margin21 = []() constexpr {
+        using namespace std::chrono_literals;
+        return 250ms;
+    }();
+
+    // The confirmed press, managed by operator<<
     arr_t<N> _stage2;
+    // The confirmed press (aggregated), managed by operator<<
+    arr_t<N> _stage25;
 
     // The confirmed press + release, managed by operator>>
     arr_t<N> _stage3;
