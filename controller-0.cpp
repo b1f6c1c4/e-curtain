@@ -34,17 +34,6 @@ int main() {
     // udp_s[6]: k
     synchronizer<7> udp_s{"udp_s", 0s};
 
-    t0d_filter t0d;
-    synchronizer<1> t0d_s{"t0d_s", 10min, [&](){
-        std::cout << now{} << " t0d" << std::endl;
-        arr_t<7> v;
-        udp_s >> v;
-        if (IS_INV(v[0]))
-            return;
-        t0d << arr_t<1>{ v[0] };
-        t0d | t0d_s;
-    }};
-
     mpc m;
     synchronizer<3> mpc_s{"mpc_s", 30s, [&](){
         std::cout << now{} << " mpc" << std::endl;

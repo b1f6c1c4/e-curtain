@@ -51,25 +51,3 @@ source<1> &lp_filter::operator>>(arr_t<1> &r) {
     return *this;
 }
 
-t0d_filter::t0d_filter() : _empty{ true }, _cursor{ 0 }, _circular{} { }
-
-sink<1> &t0d_filter::operator<<(const arr_t<1> &r) {
-    if (_empty) {
-        for (auto &v : _circular)
-            v = r[0];
-        _empty = false;
-        _cursor++;
-    } else {
-        _circular[_cursor++] = r[0];
-        _cursor %= _order + 1;
-    }
-    return *this;
-}
-
-source<1> &t0d_filter::operator>>(arr_t<1> &r) {
-    r[0] = 0;
-    for (size_t i{ 0 }; i <= _order; i++) {
-        r[0] += _circular[i] * t0d_b[(_order + _cursor - i) % (_order + 1)];
-    }
-    return *this;
-}
