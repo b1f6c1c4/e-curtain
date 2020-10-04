@@ -17,10 +17,9 @@ if(DEFINED ENV{TOOLCHAIN})
     set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 endif()
 
-include_directories(include matlab)
+include_directories(include libdumbac matlab/extern/include matlab/rtw/c/src matlab/simulink/include)
 
-file(GLOB LIBDUMBAC_SRC libdumbac/*.c)
-add_library(dumbac STATIC ${LIBDUMBAC_SRC})
+add_library(dumbac STATIC libdumbac/libdumbac.cpp libdumbac/libdumbac_capi.cpp libdumbac/libdumbac_data.cpp)
 
 file(GLOB MIDDLEWARE_SRC middleware/**/*.cpp)
 add_library(middleware STATIC ${MIDDLEWARE_SRC})
