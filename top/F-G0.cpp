@@ -9,7 +9,18 @@
 
 using namespace std::chrono_literals;
 
-int main() {
+int main(int argc, char *argv[]) {
+    std::string host{ "controller-2" };
+    if (argc == 1) {
+        // use default host
+    } else if (argc == 2) {
+        host = argv[1];
+    } else {
+        std::cerr << "Usage: ./F-G0 [<host>]" << std::endl;
+        std::cerr << "Note: The default <host> is controller-2" << std::endl;
+        return 1;
+    }
+
     std::mutex mtx;
     gpio<4, 4> i_gpio{
             "/dev/gpiochip0",
@@ -25,7 +36,7 @@ int main() {
             { false, false, false, true },
     };
 
-    udp_client<6> i_udp_client{ "controller-2", PORT };
+    udp_client<6> i_udp_client{ host, PORT };
     synchronizer<4> s_sp{ "s_sp", 0s, [&]() {
         arr_t<4> v;
         i_gpio >> v;

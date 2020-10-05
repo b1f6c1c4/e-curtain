@@ -11,7 +11,7 @@ namespace fs = std::filesystem;
 using nlohmann::json;
 
 int main(int argc, char *argv[]) {
-    std::string host{ "controller-2"};
+    std::string host{ "controller-2" };
     if (argc == 1) {
         // use default host
     } else if (argc == 2) {
