@@ -16,9 +16,11 @@ p = GPIO.PWM(11, 1500)
 }
 
 void buzzer::on() {
+    _l = std::make_unique<lock_shared<pwm_chan>>(g_pwm);
     *this << "p.start(50)\n" << std::flush;
 }
 
 void buzzer::off() {
+    _l = nullptr;
     *this << "p.stop()\n" << std::flush;
 }
