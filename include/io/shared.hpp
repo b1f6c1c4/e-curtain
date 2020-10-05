@@ -33,5 +33,5 @@ private:
     shared<M> &_s;
 };
 
-constexpr const size_t pwm_chan{ 1 };
+constexpr const size_t pwm_chan{ 2 };
 extern shared<pwm_chan> g_pwm;

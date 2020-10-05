@@ -14,5 +14,4 @@ struct servo : public sink<1> {
 private:
     static constexpr const double freq{ 100 };
     int _pin;
-    std::thread _th;
 };
