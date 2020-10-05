@@ -33,8 +33,8 @@ int main(int argc, char *argv[]) {
             "&exclude=" + "daily,hourly,minutely,alerts" +
             "&appid=" + api_key };
 
-    udp_client<6> udp{ host, PORT };
-    synchronizer<0> t0_s{"t0_s", 10min, [&]() {
+    udp_client<6> i_udp_client{ host, PORT };
+    synchronizer<0> s_t0{"s_t0", 10min, [&]() {
         curl{ url } >> j;
 
         arr_t<6> v;
@@ -51,6 +51,6 @@ int main(int argc, char *argv[]) {
         v[6] = j["current"]["wind_speed"].get<double>() <= 5.5; // f012bu
 
         std::cout << "weather -> " << host << ": " << v << std::endl;
-        udp << v;
+        i_udp_client << v;
     }};
 }
