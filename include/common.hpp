@@ -47,6 +47,18 @@ constexpr auto operator==(const arr_t<N> &l, const arr_t<N> &r) {
 }
 
 template <size_t N>
+decltype(auto) operator<<(std::ostream &os, const arr_t<N> &r) {
+    os << "[";
+    for (size_t i{ 0 }; i < N; i++) {
+        os << r[i];
+        if (i < N - 1)
+            os << ", ";
+    }
+    os << "]";
+    return os;
+}
+
+template <size_t N>
 struct source {
     virtual ~source() = default;
     virtual source &operator>>(arr_t<N> &r) = 0;
