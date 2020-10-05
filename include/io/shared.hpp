@@ -10,6 +10,7 @@ struct lock_shared;
 template <size_t M>
 struct shared {
     friend class lock_shared<M>;
+
 private:
     size_t _v{ M };
     std::mutex _mtx;
@@ -24,11 +25,13 @@ struct lock_shared final {
             _s._cv.wait(l);
         _s._v--;
     }
+
     ~lock_shared() {
         std::unique_lock l{ _s._mtx };
         _s._v++;
         _s._cv.notify_one();
     }
+
 private:
     shared<M> &_s;
 };

@@ -17,12 +17,12 @@ using size_t = std::size_t;
 
 template <size_t N>
 struct arr_t : public std::array<double, N> {
-    arr_t() : std::array<double, N>{[]() constexpr {
+    arr_t() : std::array<double, N>{ []() constexpr {
         std::array<double, N> r;
         for (auto &v : r)
             v = INV;
         return r;
-    }()} { }
+    }() } { }
 
     explicit arr_t(double v0) {
         for (auto &v : *this)
@@ -30,15 +30,15 @@ struct arr_t : public std::array<double, N> {
     }
 
     template <typename T>
-    arr_t(const std::array<T, N> &o) : std::array<double, N>{[&o]() constexpr {
+    arr_t(const std::array<T, N> &o) : std::array<double, N>{ [&o]() constexpr {
         std::array<double, N> r;
         for (size_t i{ 0 }; i < N; i++)
             r[i] = o[i];
         return r;
-    }()} {}
+    }() } { }
 
     template <typename ... TArgs>
-    explicit arr_t(TArgs && ... l) : std::array<double, N>{std::forward<TArgs>(l)...} { }
+    explicit arr_t(TArgs &&... l) : std::array<double, N>{ std::forward<TArgs>(l)... } { }
 };
 
 template <size_t N>
@@ -61,17 +61,20 @@ decltype(auto) operator<<(std::ostream &os, const arr_t<N> &r) {
 template <size_t N>
 struct source {
     virtual ~source() = default;
+
     virtual source &operator>>(arr_t<N> &r) = 0;
 };
 
 template <size_t N>
 struct sink {
     virtual ~sink() = default;
+
     virtual sink &operator<<(const arr_t<N> &r) = 0;
 };
 
 template <size_t N>
-struct sink_source : public source<N>, public sink<N> { };
+struct sink_source : public source<N>, public sink<N> {
+};
 
 template <size_t N, typename T>
 decltype(auto) operator>>(std::array<T, N> &s, arr_t<N> &v) {
@@ -86,7 +89,7 @@ decltype(auto) operator>>(std::array<T, N> &s, arr_t<N> &v) {
 template <size_t N, typename T>
 decltype(auto) operator<<(std::array<T, N> &s, arr_t<N> &&v) {
     for (size_t i{ 0 }; i < N; i++)
-        s[i] << std::array{v[i]};
+        s[i] << std::array{ v[i] };
     return s;
 }
 

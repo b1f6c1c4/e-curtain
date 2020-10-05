@@ -4,7 +4,6 @@
 #include <sys/ioctl.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
-#include <stdexcept>
 
 si7021::si7021(const std::string &dev) : _fd{ open(dev.c_str(), O_RDWR) } {
     if (_fd < 0)

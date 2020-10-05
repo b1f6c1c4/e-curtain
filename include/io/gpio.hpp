@@ -13,7 +13,8 @@
 
 template <size_t NI, size_t NO>
 struct gpio : public sink<NO>, public source<NI> {
-    gpio(const std::string &dev, const std::array<int, NI> &pi, const std::array<int, NO> &po, const std::array<bool, NO> &slow)
+    gpio(const std::string &dev, const std::array<int, NI> &pi, const std::array<int, NO> &po,
+         const std::array<bool, NO> &slow)
             : _chipfd{ open(dev.c_str(), 0) }, _ifd{ -1 }, _ofd{ -1 }, _slow{ slow } {
         if (_chipfd < 0)
             throw std::runtime_error("Cannot open gpio dev");
@@ -59,7 +60,7 @@ struct gpio : public sink<NO>, public source<NI> {
             auto duration{ _slow[i] ? 0.85s : 0.25s };
             auto incr{ duration / period * 0.3 };
             auto t0{ std::chrono::steady_clock::now() + duration };
-            for (size_t j{ 0 }; ; j++) {
+            for (size_t j{ 0 };; j++) {
                 double v;
                 if (IS_INV(_prev[i]) || j > incr)
                     v = r[i];

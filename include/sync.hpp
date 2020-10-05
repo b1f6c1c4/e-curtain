@@ -13,24 +13,24 @@ template <size_t N>
 struct synchronizer : public sink_source<N> {
     template <typename Tt>
     explicit synchronizer(std::string name, Tt &&dt)
-            : _name{std::move(name)}, _dt{ dt }, _thread(&synchronizer::thread_entry, this) { }
+            : _name{ std::move(name) }, _dt{ dt }, _thread(&synchronizer::thread_entry, this) { }
 
     template <typename Tt, typename Tf>
     synchronizer(std::string name, Tt &&dt, const Tf &cb)
-            : _name{std::move(name)}, _dt{ dt }, _callback{ cb }, _thread(&synchronizer::thread_entry, this) { }
+            : _name{ std::move(name) }, _dt{ dt }, _callback{ cb }, _thread(&synchronizer::thread_entry, this) { }
 
     virtual ~synchronizer() {
         _thread.join();
     }
 
     source<N> &operator>>(arr_t<N> &r) override {
-        std::lock_guard l{_v_mtx};
+        std::lock_guard l{ _v_mtx };
         r = _v;
         return *this;
     }
 
     sink<N> &operator<<(const arr_t<N> &r) override {
-        std::lock_guard l{_v_mtx};
+        std::lock_guard l{ _v_mtx };
         _v = r;
         return *this;
     }
@@ -39,14 +39,6 @@ struct synchronizer : public sink_source<N> {
     void set_callback(const Tf &cb) {
         std::lock_guard l{ _mtx };
         _callback = cb;
-    }
-
-    void immediate() {
-        std::lock_guard l{ _mtx };
-        _clk = std::chrono::system_clock::now();
-        _clk += _dt;
-        if (_callback)
-            _callback();
     }
 
 private:
@@ -58,6 +50,7 @@ private:
     std::chrono::system_clock::time_point _clk;
     std::function<void()> _callback;
     std::thread _thread;
+
     void thread_entry() {
         _clk = std::chrono::system_clock::now();
 
@@ -66,7 +59,7 @@ private:
         while (true) {
             auto flag{ true };
             {
-                std::lock_guard l{_mtx};
+                std::lock_guard l{ _mtx };
                 auto curr{ std::chrono::system_clock::now() };
                 if (_dt.count() != 0 && curr - _clk > 0.2 * _dt) {
                     std::cerr << now{} << " " << _name << " Warning: abnormal duration skew, skip" << std::endl;

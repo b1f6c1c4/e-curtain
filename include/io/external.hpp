@@ -12,7 +12,9 @@ struct external_fp : public stdio_filebuf<char> {
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "modernize-use-override"
+
     ~external_fp();
+
 #pragma clang diagnostic pop
 };
 

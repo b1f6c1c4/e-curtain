@@ -9,7 +9,7 @@
 
 template <size_t N>
 struct udp_server : public source<N> {
-    udp_server(int port)
+    udp_server(uint16_t port)
             : _fd{ socket(AF_INET, SOCK_DGRAM, 0) }, _target{} {
         if (_fd < 0)
             throw std::runtime_error("Cannot open socket");

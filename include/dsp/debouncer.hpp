@@ -63,7 +63,7 @@ struct debouncer : public sink_source<N> {
                     } else {
                         _state = STAGE2;
                         _stage2 = _stage1; // confirm the old one
-                        for (size_t i{0}; i < N; i++) // merge it
+                        for (size_t i{ 0 }; i < N; i++) // merge it
                             if (_stage2[i] != 0.0)
                                 _stage25[i] = 1.0;
                         if (r != _stage1) {
@@ -108,16 +108,18 @@ private:
     clk::time_point _c1; // stage1 entrance time
 
     // Time to confirm a brief [press|release]
-    static constexpr auto _margin1 = []() constexpr {
-        using namespace std::chrono_literals;
-        return 50ms;
-    }();
+    static constexpr auto _margin1{ []()
+            constexpr {
+                using namespace std::chrono_literals;
+                return 50ms;
+            }() };
 
     // Time to confirm a brief [press|release] when there is already a confirmed press
-    static constexpr auto _margin21 = []() constexpr {
-        using namespace std::chrono_literals;
-        return 250ms;
-    }();
+    static constexpr auto _margin21{ []()
+            constexpr {
+                using namespace std::chrono_literals;
+                return 250ms;
+            }() };
 
     // The confirmed press, managed by operator<<
     arr_t<N> _stage2;
@@ -132,10 +134,11 @@ private:
     std::condition_variable _cv3;
 
     // Time to disposed a confirmed press + release
-    static constexpr auto _margin3 = []() constexpr {
-        using namespace std::chrono_literals;
-        return 1s;
-    }();
+    static constexpr auto _margin3{ []()
+            constexpr {
+                using namespace std::chrono_literals;
+                return 1s;
+            }() };
 };
 
 template <size_t N>

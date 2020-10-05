@@ -2,7 +2,6 @@
 #include <mutex>
 #include "net/udp_client.hpp"
 #include "net/udp_server.hpp"
-#include "dsp/filter.hpp"
 #include "dsp/pwm.hpp"
 #include "io/gpio.hpp"
 #include "sync.hpp"

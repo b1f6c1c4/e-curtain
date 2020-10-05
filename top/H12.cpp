@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     si7021 i_sensor{ "/dev/i2c-1" };
     std::array<lp_filter, 2> lps;
     udp_client<3> i_udp_client{ host, PORT };
-    synchronizer<0> s_sensor{"s_sensor", 200ms, [&](){
+    synchronizer<0> s_sensor{ "s_sensor", 200ms, [&]() {
         arr_t<2> tr;
         i_sensor | lps;
         lps >> tr;

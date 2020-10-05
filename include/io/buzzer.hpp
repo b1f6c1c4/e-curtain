@@ -8,6 +8,7 @@ struct buzzer : public py {
     buzzer();
 
     void on();
+
     void off();
 
 private:

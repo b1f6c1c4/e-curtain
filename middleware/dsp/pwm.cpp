@@ -6,6 +6,7 @@ sink<1> &pwm::operator<<(const arr_t<1> &r) {
     _v = r[0];
     return *this;
 }
+
 source<1> &pwm::operator>>(arr_t<1> &r) {
     if (_cnt < _max * _v && _prev != 1)
         r[0] = _prev = 1;

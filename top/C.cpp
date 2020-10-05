@@ -62,6 +62,8 @@ int main(int argc, char *argv[]) {
                 u.w1 = v[8];
                 u.w2 = v[9];
                 break;
+            default:
+                std::cerr << "Warning: invalid udp package type" << std::endl;
         }
     }};
 
@@ -69,14 +71,14 @@ int main(int argc, char *argv[]) {
     udp_client<4> i_udp_client2{ host2, PORT };
 
     std::ofstream logger{
-        fs::weakly_canonical(fs::path(argv[0])).parent_path().parent_path() / "e-curtain-cxx.log.bin",
-        std::ios_base::app,
+            fs::weakly_canonical(fs::path(argv[0])).parent_path().parent_path() / "e-curtain-cxx.log.bin",
+            std::ios_base::app,
     };
 
     libdumbacModelClass i_mpc;
     i_mpc.initialize();
     synchronizer<0> s_mpc{ "s_mpc", 10s, [&]() {
-        auto ar{[&]() {
+        auto ar{ [&]() {
             std::lock_guard l{ mtx };
             u.f012b[1] = std::max(std::min(f012bu[0], f012bu[1]), u.f012b[0]);
             i_mpc.setExternalInputs(&u);
@@ -102,7 +104,7 @@ int main(int argc, char *argv[]) {
                     u.w1,
                     u.w2,
             };
-        }()};
+        }() };
         logger.write(reinterpret_cast<const char *>(ar.data()), ar.size());
         logger.flush();
 

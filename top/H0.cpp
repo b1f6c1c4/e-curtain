@@ -28,13 +28,13 @@ int main(int argc, char *argv[]) {
     auto lat{ j["lat"].get<double>() };
     auto lon{ j["lon"].get<double>() };
     auto url{ std::string("https://api.openweathermap.org/data/2.5/onecall") +
-            "?lat=" + std::to_string(lat) +
-            "&lon=" + std::to_string(lon) +
-            "&exclude=" + "daily,hourly,minutely,alerts" +
-            "&appid=" + api_key };
+              "?lat=" + std::to_string(lat) +
+              "&lon=" + std::to_string(lon) +
+              "&exclude=" + "daily,hourly,minutely,alerts" +
+              "&appid=" + api_key };
 
     udp_client<6> i_udp_client{ host, PORT };
-    synchronizer<0> s_t0{"s_t0", 10min, [&]() {
+    synchronizer<0> s_t0{ "s_t0", 10min, [&]() {
         curl{ url } >> j;
 
         arr_t<6> v;
