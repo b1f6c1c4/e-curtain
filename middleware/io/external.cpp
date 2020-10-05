@@ -21,4 +21,4 @@ external_out::external_out(const std::string &cmd) : external_fp{cmd, false }, s
 
 curl::curl(const std::string &url) : external_in{ "curl -fsSL '" + url + "'" } { }
 
-py::py() : external_out{ "python3 -c 'import code\ncode.interact(local=locals())'" } { }
+py::py() : external_out{ "python3 -c 'import code\ncode.interact(local=locals())' >/dev/null 2>/dev/null" } { }
