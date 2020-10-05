@@ -1,15 +1,11 @@
 #pragma once
 
 #include "common.hpp"
+#include "io/external.hpp"
 
-struct buzzer {
+struct buzzer : public py {
     buzzer();
-    virtual ~buzzer();
 
     void on();
     void off();
-
-private:
-    void write(const std::string &str);
-    FILE *_fp;
 };
