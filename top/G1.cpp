@@ -6,6 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "net/udp_server.hpp"
+#include "io/realtime.hpp"
 #include "sync.hpp"
 
 using namespace std::chrono_literals;
@@ -49,6 +50,8 @@ void write(double cur, double win, bool fan) {
 }
 
 int main(int argc, char *argv[]) {
+    g_make_realtime();
+
     auto chipfd{ open("/dev/gpiochip0", 0) };
     if (chipfd < 0)
         throw std::runtime_error("Cannot open gpio dev");

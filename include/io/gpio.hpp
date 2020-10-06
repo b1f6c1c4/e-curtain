@@ -10,12 +10,14 @@
 #include <stdexcept>
 #include <cstring>
 #include "dsp/debouncer.hpp"
+#include "io/realtime.hpp"
 
 template <size_t NI, size_t NO>
 struct gpio : public sink<NO>, public source<NI> {
     gpio(const std::string &dev, const std::array<int, NI> &pi, const std::array<int, NO> &po,
          const std::array<bool, NO> &slow)
             : _chipfd{ open(dev.c_str(), 0) }, _ifd{ -1 }, _ofd{ -1 }, _slow{ slow } {
+        g_make_realtime();
         if (_chipfd < 0)
             throw std::runtime_error("Cannot open gpio dev");
 

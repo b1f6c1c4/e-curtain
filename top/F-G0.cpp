@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
     } else if (argc == 2) {
         host = argv[1];
     } else {
-        std::cerr << "Usage: ./F-G0 [<host>]" << std::endl;
-        std::cerr << "Note: The default <host> is controller-2" << std::endl;
+        std::cout << "Usage: ./F-G0 [<host>]" << std::endl;
+        std::cout << "Note: The default <host> is controller-2" << std::endl;
         return 1;
     }
 

@@ -19,9 +19,9 @@ int main(int argc, char *argv[]) {
         host1 = argv[1];
         host2 = argv[2];
     } else {
-        std::cerr << "Usage: ./C [<host1> <host2>]" << std::endl;
-        std::cerr << "Note: The default <host1> is controller-1" << std::endl;
-        std::cerr << "Note: The default <host2> is controller-2" << std::endl;
+        std::cout << "Usage: ./C [<host1> <host2>]" << std::endl;
+        std::cout << "Note: The default <host1> is controller-1" << std::endl;
+        std::cout << "Note: The default <host2> is controller-2" << std::endl;
         return 1;
     }
 
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
                 u.w2 = v[9];
                 break;
             default:
-                std::cerr << "Warning: invalid udp package type" << std::endl;
+                std::cout << "Warning: invalid udp package type" << std::endl;
         }
     }};
 

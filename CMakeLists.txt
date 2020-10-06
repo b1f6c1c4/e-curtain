@@ -31,7 +31,7 @@ include_directories(include libdumbac matlab/extern/include matlab/rtw/c/src mat
 add_library(dumbac STATIC libdumbac/libdumbac.cpp libdumbac/libdumbac_capi.cpp libdumbac/libdumbac_data.cpp)
 
 file(GLOB MIDDLEWARE_SRC middleware/**/*.cpp)
-add_library(middleware STATIC ${MIDDLEWARE_SRC} middleware/io/shared.cpp)
+add_library(middleware STATIC ${MIDDLEWARE_SRC})
 
 link_libraries(middleware Threads::Threads)
 add_executable(C top/C.cpp)
