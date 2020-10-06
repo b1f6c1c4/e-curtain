@@ -1,6 +1,5 @@
 #include "common.hpp"
 #include <mutex>
-#include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include "net/udp_server.hpp"
@@ -10,7 +9,6 @@
 #include "sync.hpp"
 
 using namespace std::chrono_literals;
-namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
     std::string host1{ "controller-1" };
@@ -29,7 +27,7 @@ int main(int argc, char *argv[]) {
 
 
     nlohmann::json j;
-    std::ifstream{ fs::weakly_canonical(fs::path(argv[0])).parent_path().parent_path() / "weather.json" } >> j;
+    std::ifstream{ "/etc/e-curtain/weather.json" } >> j;
     auto api_key{ j["key"].get<std::string>() };
     auto lat{ j["lat"].get<double>() };
     auto lon{ j["lon"].get<double>() };
@@ -58,7 +56,7 @@ int main(int argc, char *argv[]) {
 
         std::cout << "Info: Got weather: " << v << std::endl;
         i_udp_client << v;
-    }};
+    } };
 
 
     std::mutex mtx{};
@@ -101,15 +99,12 @@ int main(int argc, char *argv[]) {
             default:
                 std::cout << "Warning: invalid udp package type" << std::endl;
         }
-    }};
+    } };
 
     udp_client<3> i_udp_client1{ host1, PORT };
     udp_client<4> i_udp_client2{ host2, PORT };
 
-    std::ofstream logger{
-            fs::weakly_canonical(fs::path(argv[0])).parent_path().parent_path() / "e-curtain-cxx.log.bin",
-            std::ios_base::app,
-    };
+    std::ofstream logger{ "/var/log/e-curtain.bin", std::ios_base::app };
 
     libdumbacModelClass i_mpc;
     i_mpc.initialize();
@@ -162,5 +157,5 @@ int main(int argc, char *argv[]) {
 
         i_udp_client1 << g1;
         i_udp_client2 << g2;
-    }};
+    } };
 }
