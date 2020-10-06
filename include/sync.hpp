@@ -8,6 +8,7 @@
 #include <iostream>
 #include <mutex>
 #include <utility>
+#include "io/realtime.hpp"
 
 template <size_t N>
 struct synchronizer : public sink_source<N> {

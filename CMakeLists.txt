@@ -34,13 +34,10 @@ file(GLOB MIDDLEWARE_SRC middleware/**/*.cpp)
 add_library(middleware STATIC ${MIDDLEWARE_SRC})
 
 link_libraries(middleware Threads::Threads)
-add_executable(C top/C.cpp)
+add_executable(H0-C top/H0-C.cpp)
 add_executable(F-G0 top/F-G0.cpp)
 add_executable(H1-G1 top/H1-G1.cpp)
-add_executable(H0 top/H0.cpp)
 add_executable(H2 top/H2.cpp)
 
-target_link_libraries(H0 nlohmann_json::nlohmann_json)
-
-target_link_libraries(C dumbac)
+target_link_libraries(H0-C nlohmann_json::nlohmann_json dumbac)
 
