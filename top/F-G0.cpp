@@ -64,12 +64,22 @@ int main(int argc, char *argv[]) {
         i_overlay | i_gpio;
     } };
 
-    udp_client<6> i_udp_client{ host, PORT };
+    udp_client<10> i_udp_client{ host, PORT };
     synchronizer<4> s_sp{ "s_sp", 0s, [&]() {
         arr_t<4> v;
         i_gpio >> v;
         // TODO: set point
-        // i_udp_client << sp;
+        arr_t<10> sp{};
+        if (v[0] == 1)
+            sp = arr_t<10>{ 3.0, 26.5, 25.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 3.0 };
+        else if (v[1] == 1)
+            sp = arr_t<10>{ 3.0, 26.5, 25.0, 0.0, 0.0, 0.0, 0.0, 1.0, 3.0, 0.0 };
+        else if (v[2] == 1)
+            sp = arr_t<10>{ 3.0, 26.5, 25.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 1.0 };
+        else if (v[3] == 1)
+            sp = arr_t<10>{ 3.0, 26.5, 25.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2.0 };
+        std::cout << "Set point: " << sp << std::endl;
+        i_udp_client << sp;
     } };
 
     udp_server<4> i_udp_server{ PORT };

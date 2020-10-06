@@ -20,7 +20,7 @@ deploy: deploy-0 deploy-1 deploy-2
 undeploy: undeploy-0 undeploy-1 undeploy-2
 
 deploy-0: build
-	script/deploy.sh F-G0 $(HOST0) $(HOST1)
+	script/deploy.sh F-G0 $(HOST0) $(HOST2)
 
 log-0:
 	ssh pi@$(HOST0) sudo journalctl -u F-G0
