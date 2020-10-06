@@ -63,12 +63,14 @@ struct gpio : public sink<NO>, public source<NI> {
             auto t0{ std::chrono::steady_clock::now() + duration };
             for (size_t j{ 0 };; j++) {
                 double v;
-                if (IS_INV(_prev[i]) || j > incr)
+                if (IS_INV(r[i]))
+                    v = 0;
+                else if (IS_INV(_prev[i]) || j > incr)
                     v = r[i];
                 else
                     v = j / incr * (r[i] - _prev[i]) + _prev[i];
                 auto dur{ min + (max - min) * v / 180 };
-                d.values[i] = 1;
+                d.values[i] = IS_INV(r[i]) ? 0 : 1;
                 if (ioctl(_ofd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &d) < 0)
                     throw std::runtime_error("Cannot write gpio");
                 std::this_thread::sleep_for(dur);

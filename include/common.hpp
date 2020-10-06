@@ -18,7 +18,7 @@ using size_t = std::size_t;
 template <size_t N>
 struct arr_t : public std::array<double, N> {
     arr_t() : std::array<double, N>{ []() constexpr {
-        std::array<double, N> r;
+        std::array<double, N> r{};
         for (auto &v : r)
             v = INV;
         return r;
@@ -31,7 +31,7 @@ struct arr_t : public std::array<double, N> {
 
     template <typename T>
     arr_t(const std::array<T, N> &o) : std::array<double, N>{ [&o]() constexpr {
-        std::array<double, N> r;
+        std::array<double, N> r{};
         for (size_t i{ 0 }; i < N; i++)
             r[i] = o[i];
         return r;

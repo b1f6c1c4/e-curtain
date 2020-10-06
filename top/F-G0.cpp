@@ -3,6 +3,7 @@
 #include "net/udp_client.hpp"
 #include "net/udp_server.hpp"
 #include "dsp/pwm.hpp"
+#include "dsp/overlay.hpp"
 #include "io/gpio.hpp"
 #include "sync.hpp"
 
@@ -31,6 +32,7 @@ int main(int argc, char *argv[]) {
             // Output Slew Limits:
             { false, false, false, true },
     };
+    overlay<4> i_overlay{};
 
     auto write{ [&](double acp, double acm, double reg1, double reg2) {
         std::cout << "Write: " << acp << " " << acm << " " << reg1 << " " << reg2 << std::endl;
@@ -58,7 +60,8 @@ int main(int argc, char *argv[]) {
                 std::cout << "Warning: Invalid acm" << std::endl;
                 break;
         }
-        i_gpio << arr_t<4>{ p, m, 180.0 - 100.0 * reg1, 77.0 * reg2 };
+        i_overlay << arr_t<4>{ p, m, 180.0 - 100.0 * reg1, 77.0 * reg2 };
+        i_overlay | i_gpio;
     } };
 
     udp_client<6> i_udp_client{ host, PORT };
