@@ -3,11 +3,10 @@
 set -eux
 
 BINARY="$1"
+HOST="$2"
 
 # shellcheck disable=SC2087
-ssh "pi@$HOST0" <<EOF
-hostname
-sudo whoami
+ssh "pi@$HOST" <<EOF
 sudo systemctl stop $BINARY.service
 sudo systemctl disable $BINARY.service
 sudo rm -f /usr/bin/$BINARY

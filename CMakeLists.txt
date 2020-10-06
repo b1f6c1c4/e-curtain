@@ -14,7 +14,7 @@ if(NOT json_POPULATED)
     add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
-if(DEFINED ENV{TOOLCHAIN})
+if(DEFINED ENV{TOOLCHAIN} AND NOT $ENV{TOOLCHAIN} STREQUAL "")
     set(CMAKE_SYSTEM_NAME Linux)
     set(CMAKE_SYSTEM_PROCESSOR armv6l)
     set(CMAKE_C_COMPILER $ENV{TOOLCHAIN}/bin/armv6-rpi-linux-gnueabihf-gcc)
@@ -38,6 +38,7 @@ add_executable(H0-C top/H0-C.cpp)
 add_executable(F-G0 top/F-G0.cpp)
 add_executable(H1-G1 top/H1-G1.cpp)
 add_executable(H2 top/H2.cpp)
+add_executable(debugger top/debugger.cpp)
 
 target_link_libraries(H0-C nlohmann_json::nlohmann_json dumbac)
 

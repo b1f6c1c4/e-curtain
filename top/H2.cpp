@@ -7,14 +7,11 @@
 using namespace std::chrono_literals;
 
 int main(int argc, char *argv[]) {
-    std::string host{ "controller-2" };
-    if (argc == 1) {
-        // use default host
-    } else if (argc == 2) {
+    std::string host;
+    if (argc == 2) {
         host = argv[1];
     } else {
-        std::cout << "Usage: ./H2 [<host>]" << std::endl;
-        std::cout << "Note: The default <host> is controller-2" << std::endl;
+        std::cout << "Usage: ./H2 <host>" << std::endl;
         return 1;
     }
 
@@ -26,5 +23,5 @@ int main(int argc, char *argv[]) {
         i_sensor | lps;
         lps >> tr;
         i_udp_client << std::array{ 2.0, tr[0], tr[1] };
-    }};
+    } };
 }

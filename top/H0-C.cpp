@@ -11,17 +11,13 @@
 using namespace std::chrono_literals;
 
 int main(int argc, char *argv[]) {
-    std::string host1{ "controller-1" };
-    std::string host2{ "controller-2" };
-    if (argc == 1) {
-        // use default hosts
-    } else if (argc == 3) {
+    std::string host1;
+    std::string host2;
+    if (argc == 3) {
         host1 = argv[1];
         host2 = argv[2];
     } else {
-        std::cout << "Usage: ./C [<host1> <host2>]" << std::endl;
-        std::cout << "Note: The default <host1> is controller-1" << std::endl;
-        std::cout << "Note: The default <host2> is controller-2" << std::endl;
+        std::cout << "Usage: ./C <host1> <host2>" << std::endl;
         return 1;
     }
 

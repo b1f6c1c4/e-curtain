@@ -3,15 +3,15 @@
 set -eux
 
 BINARY="$1"
+shift
+HOST="$1"
+shift
 
-scp "$DIR/$BINARY" "pi@$HOST0:/tmp"
-
+scp "$DIR/$BINARY" "pi@$HOST:/tmp"
 
 # shellcheck disable=SC2087
-ssh "pi@$HOST0" <<EOF
+ssh "pi@$HOST" <<EOF
 set -eux
-hostname
-sudo whoami
 sudo install /tmp/$BINARY /usr/bin
 sudo tee /etc/systemd/system/$BINARY.service <<EOFF
 [Unit]
@@ -24,12 +24,12 @@ Type=simple
 Restart=always
 RestartSec=5
 User=root
-ExecStart=/usr/bin/$BINARY
+ExecStart=/usr/bin/$BINARY $*
 
 [Install]
 WantedBy=multi-user.target
 EOFF
 sudo systemctl enable $BINARY.service
 sudo systemctl restart $BINARY.service
-rm -f /tmp/$BINARY /tmp/$BINARY.service
+rm -f /tmp/$BINARY
 EOF

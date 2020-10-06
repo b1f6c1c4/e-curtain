@@ -9,14 +9,11 @@
 using namespace std::chrono_literals;
 
 int main(int argc, char *argv[]) {
-    std::string host{ "controller-2" };
-    if (argc == 1) {
-        // use default host
-    } else if (argc == 2) {
+    std::string host;
+    if (argc == 2) {
         host = argv[1];
     } else {
-        std::cout << "Usage: ./F-G0 [<host>]" << std::endl;
-        std::cout << "Note: The default <host> is controller-2" << std::endl;
+        std::cout << "Usage: ./F-G0 <host>" << std::endl;
         return 1;
     }
 
@@ -36,12 +33,16 @@ int main(int argc, char *argv[]) {
     };
 
     auto write{ [&](double acp, double acm, double reg1, double reg2) {
+        std::cout << "Write: " << acp << " " << acm << " " << reg1 << " " << reg2 << std::endl;
         auto m{ 60.0 };
+        auto p{ 180.0 * acp };
         switch (static_cast<int>(acm)) {
             case 2:
+                p = 180.0 - p;
                 m = 0.0;
                 break;
             case 1:
+                p = 180.0 - p;
                 m = 30.0;
                 break;
             case 0:
@@ -57,12 +58,7 @@ int main(int argc, char *argv[]) {
                 std::cout << "Warning: Invalid acm" << std::endl;
                 break;
         }
-        i_gpio << arr_t<4>{
-                180 * acp,
-                m,
-                180.0 - 100.0 * reg1,
-                77.0 * reg2,
-        };
+        i_gpio << arr_t<4>{ p, m, 180.0 - 100.0 * reg1, 77.0 * reg2 };
     } };
 
     udp_client<6> i_udp_client{ host, PORT };
@@ -74,8 +70,8 @@ int main(int argc, char *argv[]) {
     } };
 
     udp_server<4> i_udp_server{ PORT };
-    pwm i_pwm{ 24 }; // 24 x 5s
-    synchronizer<1> s_pwm{ "s_pwm", 5s, };
+    pwm i_pwm{ 60 }; // 60 x 2s
+    synchronizer<1> s_pwm{ "s_pwm", 2s, };
     synchronizer<3> s_recv{ "s_recv", 0s, [&]() {
         arr_t<4> v;
         i_udp_server >> v;
