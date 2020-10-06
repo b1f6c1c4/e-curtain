@@ -36,14 +36,11 @@ add_library(middleware STATIC ${MIDDLEWARE_SRC})
 link_libraries(middleware Threads::Threads)
 add_executable(C top/C.cpp)
 add_executable(F-G0 top/F-G0.cpp)
-add_executable(G1 top/G1.cpp)
+add_executable(H1-G1 top/H1-G1.cpp)
 add_executable(H0 top/H0.cpp)
-add_executable(H1 top/H12.cpp)
-add_executable(H2 top/H12.cpp)
+add_executable(H2 top/H2.cpp)
 
 target_link_libraries(H0 nlohmann_json::nlohmann_json)
-target_compile_definitions(H1 PRIVATE TAG=1)
-target_compile_definitions(H2 PRIVATE TAG=2)
 
 target_link_libraries(C dumbac)
 

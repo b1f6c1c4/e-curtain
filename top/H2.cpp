@@ -4,10 +4,6 @@
 #include "net/udp_client.hpp"
 #include "sync.hpp"
 
-#ifndef TAG
-#error "Macro TAG not defined"
-#endif
-
 using namespace std::chrono_literals;
 
 int main(int argc, char *argv[]) {
@@ -17,7 +13,7 @@ int main(int argc, char *argv[]) {
     } else if (argc == 2) {
         host = argv[1];
     } else {
-        std::cout << "Usage: ./H[12] [<host>]" << std::endl;
+        std::cout << "Usage: ./H2 [<host>]" << std::endl;
         std::cout << "Note: The default <host> is controller-2" << std::endl;
         return 1;
     }
@@ -29,6 +25,6 @@ int main(int argc, char *argv[]) {
         arr_t<2> tr;
         i_sensor | lps;
         lps >> tr;
-        i_udp_client << std::array{ static_cast<double>(TAG), tr[0], tr[1] };
+        i_udp_client << std::array{ 2.0, tr[0], tr[1] };
     }};
 }

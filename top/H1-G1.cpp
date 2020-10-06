@@ -5,8 +5,10 @@
 #include <cstring>
 #include <mutex>
 #include <condition_variable>
+#include "io/si7021.hpp"
+#include "dsp/filter.hpp"
+#include "net/udp_client.hpp"
 #include "net/udp_server.hpp"
-#include "io/realtime.hpp"
 #include "sync.hpp"
 
 using namespace std::chrono_literals;
@@ -50,7 +52,16 @@ void write(double cur, double win, bool fan) {
 }
 
 int main(int argc, char *argv[]) {
-    g_make_realtime();
+    std::string host{ "controller-2" };
+    if (argc == 1) {
+        // use default host
+    } else if (argc == 2) {
+        host = argv[1];
+    } else {
+        std::cout << "Usage: ./H1-G1 [<host>]" << std::endl;
+        std::cout << "Note: The default <host> is controller-2" << std::endl;
+        return 1;
+    }
 
     auto chipfd{ open("/dev/gpiochip0", 0) };
     if (chipfd < 0)
@@ -98,5 +109,15 @@ int main(int argc, char *argv[]) {
         write(next[0] - prev[0], next[1] - prev[1], next[2]);
         std::this_thread::sleep_for(1s);
         s_gpio << next;
+    }, true };
+
+    si7021 i_sensor{ "/dev/i2c-1" };
+    std::array<lp_filter, 2> lps;
+    udp_client<3> i_udp_client{ host, PORT };
+    synchronizer<0> s_sensor{ "s_sensor", 200ms, [&]() {
+        arr_t<2> tr;
+        i_sensor | lps;
+        lps >> tr;
+        i_udp_client << std::array{ 1.0, tr[0], tr[1] };
     }};
 }

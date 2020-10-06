@@ -12,12 +12,12 @@
 template <size_t N>
 struct synchronizer : public sink_source<N> {
     template <typename Tt>
-    explicit synchronizer(std::string name, Tt &&dt)
-            : _name{ std::move(name) }, _dt{ dt }, _thread(&synchronizer::thread_entry, this) { }
+    explicit synchronizer(std::string name, Tt &&dt, bool rt = false)
+            : _name{ std::move(name) }, _dt{ dt }, _rt{ rt }, _thread(&synchronizer::thread_entry, this) { }
 
     template <typename Tt, typename Tf>
-    synchronizer(std::string name, Tt &&dt, const Tf &cb)
-            : _name{ std::move(name) }, _dt{ dt }, _callback{ cb }, _thread(&synchronizer::thread_entry, this) { }
+    synchronizer(std::string name, Tt &&dt, const Tf &cb, bool rt = false)
+            : _name{ std::move(name) }, _dt{ dt }, _callback{ cb }, _rt{ rt }, _thread(&synchronizer::thread_entry, this) { }
 
     virtual ~synchronizer() {
         _thread.join();
@@ -49,9 +49,12 @@ private:
     std::mutex _mtx;
     std::chrono::system_clock::time_point _clk;
     std::function<void()> _callback;
+    bool _rt;
     std::thread _thread;
 
     void thread_entry() {
+        if (_rt)
+            g_make_realtime();
         _clk = std::chrono::system_clock::now();
 
 #pragma clang diagnostic push
