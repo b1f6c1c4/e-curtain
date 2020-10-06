@@ -58,7 +58,7 @@ struct gpio : public sink<NO>, public source<NI> {
         std::fill(d.values, d.values + NO, 0);
         for (size_t i{ 0 }; i < NO; i++) {
             auto duration{ _slow[i] ? 0.85s : 0.25s };
-            auto incr{ duration / period * 0.3 };
+            auto incr{ duration / period * 0.9 };
             auto t0{ std::chrono::steady_clock::now() + duration };
             for (size_t j{ 0 };; j++) {
                 double v;
@@ -66,7 +66,6 @@ struct gpio : public sink<NO>, public source<NI> {
                     v = r[i];
                 else
                     v = j / incr * (r[i] - _prev[i]) + _prev[i];
-                std::cerr << i << " " << j << " " << v << std::endl;
                 auto dur{ min + (max - min) * v / 180 };
                 d.values[i] = 1;
                 if (ioctl(_ofd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &d) < 0)
