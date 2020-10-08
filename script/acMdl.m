@@ -25,17 +25,18 @@ B2 = [
     0  -1 +1 -1 0  0
     0  0  0  0  0  +1
     ];
-% [ac ak1 ak2 f012 cur t0d w0 w1 w2] -> [Wac W1 W2 W01 W012 Wx]
-%   1  tac tac t1m0       Wsun-50  1   1    0   0
+% [ac1 ac2 ak1 ak2 f012 cur t0d w0 w1 w2] -> [Wac W1 W2 W01 W012 Wx]
+%   1    1  tac tac t1m0       Wsun-50  1   1    0   0
 B1s = [
-    2100 0  0  0          0        0   0    0   0
-    200  kt 0  0          0        0   0    200 0
-    200  0  kt 0          0        0   1100 0   300
-    0    0  0  -350       1        0   0    0   0
-    0    0  0  0          0        155 0    0   0
-    0    0  0  -140       0        0   0    0   0
+    2100 2100 0  0  0          0        0   0    0   0
+    200  0    kt 0  0          0        0   0    200 0
+    0    200  0  kt 0          0        0   1100 0   300
+    0    0    0  0  -350       1        0   0    0   0
+    0    0    0  0  0          0        155 0    0   0
+    0    0    0  0  -140       0        0   0    0   0
     ];
 Blpv = [
+    0 0 0 1
     0 0 0 1
     0 0 1 0
     0 0 1 0
@@ -63,15 +64,15 @@ C2 = [
     ];
 % [t1 t2 tac] -> [ts td tac]
 C1 = [
-    0.25 0.75 1
-    -1 1 1
+    0.25 0.75 0
+    -1 1 0
     0 0 1
     ];
-% [ac ak1 ak2 f012 cur t0d w0 w1 w2] -> [t1 t2]
+% [ac1 ac2 ak1 ak2 f012 cur t0d w0 w1 w2] -> [t1 t2]
 D0 = [
-    0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0
     ];
 
 fmakeACMdl = @(t1m0, Wsun, tac, Ts) makeACMdl(t1m0, Wsun, tac, Ts, ...
@@ -82,8 +83,8 @@ fmakeACMdl = @(t1m0, Wsun, tac, Ts) makeACMdl(t1m0, Wsun, tac, Ts, ...
 Ts = 10;
 t1m0s = [-20 40];
 Wsuns = [0 1600];
-tacs = [-20 20];
-Gds = drss(5,3,9,length(t1m0s),length(Wsuns),length(tacs));
+tacs = [-16.8 16.8];
+Gds = drss(5,3,10,length(t1m0s),length(Wsuns),length(tacs));
 for i = 1:length(t1m0s)
     for j = 1:length(Wsuns)
         for k = 1:length(tacs)
@@ -94,23 +95,29 @@ end
 [t1m0sg,Wsunsg,tacsg] = ndgrid(t1m0s, Wsuns, tacs);
 Gds.SamplingGrid = struct('t1m0', t1m0sg, 'Wsun', Wsunsg, 'tac', tacsg);
 
-Gdsam = mpc(fmakeACMdl(10, 60, -16, Ts), Ts, 10, 2, struct(...
-    'ManipulatedVariables',     [0    0.001 0.001 0.002 0    ], ...
-    'ManipulatedVariablesRate', [0    0     0     0.015 0.012]));
+Gdsam = mpc(fmakeACMdl(10, 60, 0, Ts), Ts, 10, 2, struct(...
+    'ManipulatedVariables',     [0.15 0.15 0.001 0.001 0.002 0    ], ...
+    'ManipulatedVariablesRate', [0    0    0     0     0.015 0.012]));
 conE = [
-    -1 0  0  0  0
-    +1 0  0  0  0
-    0  -1 0  0  0
-    0  +1 0  0  0
-    0  0  -1 0  0
-    0  0  +1 0  0
-    0  +1 +1 0  0
-    0  0  0  -1 0
-    0  0  0  +1 0
-    0  0  0  0  -1
-    0  0  0  0  +1
+    -1 0  0  0  0  0
+    +1 0  0  0  0  0
+    0  -1 0  0  0  0
+    0  +1 0  0  0  0
+    -1 -1 0  0  0  0
+    +1 +1 0  0  0  0
+    0  0  -1 0  0  0
+    0  0  +1 0  0  0
+    0  0  0  -1 0  0
+    0  0  0  +1 0  0
+    0  0  +1 +1 0  0
+    0  0  0  0  -1 0
+    0  0  0  0  +1 0
+    0  0  0  0  0  -1
+    0  0  0  0  0  +1
     ];
 conG = [
+    2; 2
+    2; 2
     2; 2
     -(0.4-0.08); 0.9-0.08
     -(0.1-0.08); 0.6-0.08

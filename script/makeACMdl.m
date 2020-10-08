@@ -8,10 +8,10 @@ C = C1\C2;
 D = D0;
 
 G = ss(A, B, C, D, ...
-    'InputName', {'ac', 'ak1', 'ak2', 'f012', 'cur', 't0d', 'w0', 'w1', 'w2'}, ...
+    'InputName', {'ac1', 'ac2', 'ak1', 'ak2', 'f012', 'cur', 't0d', 'w0', 'w1', 'w2'}, ...
     'OutputName', {'t1', 't2', 'tac'});
 
 Gd = c2d(G, Ts);
-Gd = setmpcsignals(Gd, 'MV', [1 2 3 4 5], 'MD', [6 7 8 9], 'MO', [1 2], 'UO', 3);
+Gd = setmpcsignals(Gd, 'MV', [1 2 3 4 5 6], 'MD', [7 8 9 10], 'MO', [1 2], 'UO', 3);
 
 end
