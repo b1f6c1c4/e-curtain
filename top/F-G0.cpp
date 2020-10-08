@@ -4,10 +4,151 @@
 #include "net/udp_server.hpp"
 #include "dsp/pwm.hpp"
 #include "dsp/overlay.hpp"
+#include "dsp/sleep.hpp"
 #include "io/gpio.hpp"
 #include "sync.hpp"
 
 using namespace std::chrono_literals;
+
+const arr_t<4> g_ABCD{ 1.0, 1.0, 1.0, 1.0 };
+const arr_t<4> g_ABC{ 1.0, 1.0, 1.0, 0.0 };
+const arr_t<4> g_AB{ 1.0, 1.0, 0.0, 0.0 };
+const arr_t<4> g_CD{ 0.0, 0.0, 1.0, 1.0 };
+const arr_t<4> g_A{ 1.0, 0.0, 0.0, 0.0 };
+const arr_t<4> g_B{ 0.0, 1.0, 0.0, 0.0 };
+const arr_t<4> g_C{ 0.0, 0.0, 1.0, 0.0 };
+
+auto time_of_day() {
+    auto clk{ std::chrono::system_clock::now() };
+    auto tt{ std::chrono::system_clock::to_time_t(clk) };
+    auto tm{ *localtime(&tt) };
+    return tm.tm_hour + (tm.tm_min + tm.tm_sec / 60.0) / 60.0;
+}
+
+struct state_machine_t : public sink<4>, public source<10> {
+    sink<4> &operator<<(const arr_t<4> &r) override {
+        std::lock_guard l{ _mtx };
+        if (r == g_AB)
+            _offset += 0.5;
+        else if (r == g_CD)
+            _offset -= 0.5;
+        else if (r == g_ABC)
+            _offset = 0.0;
+        switch (_state) {
+            case S_NOBODY:
+                if (r == g_ABCD)
+                    _state = S_NORMAL;
+                break;
+            case S_NORMAL:
+                if (r == g_ABCD)
+                    _state = S_NOBODY;
+                else if (r == g_B) {
+                    if (time_of_day() >= 9.0 && time_of_day() < 20)
+                        _state = S_SNAP;
+                    else {
+                        _state = S_SLEEP;
+                        _slept = std::chrono::system_clock::now();
+                    }
+                }
+                break;
+            case S_SNAP:
+                if (r == g_A)
+                    _state = S_NORMAL;
+                else if (!(time_of_day() >= 9.0 && time_of_day() < 20))
+                    _state = S_SNAP;
+                break;
+            case S_SLEEP:
+                if (r == g_A)
+                    _state = S_NORMAL;
+                else if (r == g_C)
+                    _state = S_RSNAP;
+                break;
+            case S_RSNAP:
+                if (r == g_A)
+                    _state = S_NORMAL;
+                else if (r == g_B)
+                    _state = S_SLEEP;
+                break;
+        }
+        return *this;
+    }
+
+    source<10> &operator>>(arr_t<10> &r) override {
+        std::lock_guard l{ _mtx };
+        auto td{ time_of_day() };
+        auto ts{ std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now() - _slept).count() / 3600 };
+        r[0] = 3;
+        switch (_state) {
+            case S_NOBODY:
+                r[1] = 20.0, r[2] = 20.0; // tp[12]
+                r[3] = 0.5, r[4] = 0.5; // f012b[lu]
+                r[5] = 0.5, r[6] = 0.5; // curb[lu]
+                r[7] = 0.5, r[8] = 0.0, r[9] = 0.0; // w[012]
+                break;
+            case S_NORMAL:
+                if (td >= 9.0 && td < 20.0) {
+                    r[1] = 26.0, r[2] = 26.0; // tp[12]
+                    r[3] = 0.0, r[4] = 1.0; // f012b[lu]
+                    r[5] = 0.0, r[6] = 1.0; // curb[lu]
+                    r[7] = 1.0, r[8] = 0.0, r[9] = 3.0; // w[012]
+                } else if (td >= 20.0 && td < 23.5) {
+                    r[1] = 26.5, r[2] = 25.5; // tp[12]
+                    r[3] = 0.0, r[4] = 1.0; // f012b[lu]
+                    r[5] = 0.0, r[6] = 1.0; // curb[lu]
+                    r[7] = 1.0, r[8] = 1.0, r[9] = 2.0; // w[012]
+                } else if (td >= 23.5 && td < 23.55) {
+                    r[1] = 28.0, r[2] = 27.0; // tp[12]
+                    r[3] = 1.0, r[4] = 1.0; // f012b[lu]
+                    r[5] = 0.0, r[6] = 0.0; // curb[lu]
+                    r[7] = 1.0, r[8] = 1.0, r[9] = 2.0; // w[012]
+                } else {
+                    r[1] = 28.0, r[2] = 27.0; // tp[12]
+                    r[3] = 0.0, r[4] = 0.2; // f012b[lu]
+                    r[5] = 0.0, r[6] = 0.0; // curb[lu]
+                    r[7] = 1.0, r[8] = 1.0, r[9] = 2.0; // w[012]
+                }
+                break;
+            case S_SNAP:
+                r[1] = 27.0, r[2] = 26.0; // tp[12]
+                r[3] = 0.0, r[4] = 0.2; // f012b[lu]
+                r[5] = 0.5, r[6] = 0.5; // curb[lu]
+                r[7] = 1.0, r[8] = 1.5, r[9] = 1.5; // w[012]
+                break;
+            case S_SLEEP:
+            case S_RSNAP:
+                r[1] = g_sleep(ts);
+                if (ts < 450)
+                    r[3] = 0.0, r[4] = 0.0; // f012b[lu]
+                else
+                    r[3] = 0.0, r[4] = 0.2; // f012b[lu]
+                if (ts > 450)
+                    r[5] = r[6] = std::min(1.0, (ts - 450.0) / 20.0); // curb[lu]
+                if (_state == S_SLEEP) {
+                    r[2] = r[1] - 0.5; // tp2
+                    r[7] = 1.0, r[8] = 3.0, r[9] = 0.0; // w[012]
+                } else { // if (_state == S_RSNAP)
+                    r[2] = std::max(26.0, r[1] - 1.0); // tp2
+                    r[7] = 1.0, r[8] = 2.0, r[9] = 1.0; // w[012]
+                }
+                break;
+        }
+        r[1] += _offset, r[2] += _offset;
+        return *this;
+    }
+
+private:
+    std::mutex _mtx;
+    enum state_t {
+        S_NOBODY,
+        S_NORMAL,
+        S_SNAP,
+        S_SLEEP,
+        S_RSNAP,
+    } _state{ S_NORMAL };
+    double _offset{ 0.0 };
+    std::chrono::system_clock::time_point _slept;
+};
 
 int main(int argc, char *argv[]) {
     std::string host;
@@ -64,20 +205,20 @@ int main(int argc, char *argv[]) {
         i_overlay | i_gpio;
     } };
 
+    state_machine_t sm;
+
     udp_client<10> i_udp_client{ host, PORT };
-    synchronizer<4> s_sp{ "s_sp", 0s, [&]() {
-        arr_t<4> v;
-        i_gpio >> v;
-        // TODO: set point
+    synchronizer<0> s_sp{ "s_sp", 0s, [&]() {
+        i_gpio | sm;
         arr_t<10> sp{};
-        if (v[0] == 1)
-            sp = arr_t<10>{ 3.0, 26.5, 25.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 3.0 };
-        else if (v[1] == 1)
-            sp = arr_t<10>{ 3.0, 26.5, 25.0, 0.0, 0.0, 0.0, 0.0, 1.0, 3.0, 0.0 };
-        else if (v[2] == 1)
-            sp = arr_t<10>{ 3.0, 26.5, 25.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 1.0 };
-        else if (v[3] == 1)
-            sp = arr_t<10>{ 3.0, 26.5, 25.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2.0 };
+        sm >> sp;
+        std::cout << "Set point: " << sp << std::endl;
+        i_udp_client << sp;
+    } };
+    synchronizer<0> s_spt{ "s_spt", 10s, [&]() {
+        sm << arr_t<4>{};
+        arr_t<10> sp{};
+        sm >> sp;
         std::cout << "Set point: " << sp << std::endl;
         i_udp_client << sp;
     } };

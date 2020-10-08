@@ -122,7 +122,6 @@ int main(int argc, char *argv[]) {
     i_mpc.initialize();
     synchronizer<0> s_mpc{ "s_mpc", 10s, [&]() {
         auto clk{ std::chrono::system_clock::now().time_since_epoch().count() };
-        logger.write(reinterpret_cast<const char *>(&clk), sizeof(clk));
         auto ar{ [&]() {
             std::lock_guard l{ mtx };
             u.f012b[1] = std::max(std::min(f012bu[0], f012bu[1]), u.f012b[0]);
@@ -150,12 +149,12 @@ int main(int argc, char *argv[]) {
                     u.w2,
             };
         }() };
-        logger.write(reinterpret_cast<const char *>(ar.data()), ar.size() * sizeof(double));
-        logger.flush();
 
         i_mpc.step();
 
         auto &res{ i_mpc.getExternalOutputs() };
+        logger.write(reinterpret_cast<const char *>(&clk), sizeof(clk));
+        logger.write(reinterpret_cast<const char *>(ar.data()), ar.size() * sizeof(double));
         logger.write(reinterpret_cast<const char *>(&res), sizeof(res));
         logger.write(log_pad.data(), log_padding);
         logger.flush();
