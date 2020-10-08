@@ -70,9 +70,11 @@ D = D0; % *X
 
 G = ss(A, B, C, D, ...
     'InputName', {'ac1', 'ac2', 'f012', 'cur', 't0d', 'w0', 'w1', 'w2'}, ...
-    'OutputName', {'t1', 't2'});
+    'OutputName', {'t1', 't2'}, ...
+    'InputDelay', [60, 60, 0, 0, 0, 0, 0, 0]);
 
 Gd = c2d(G, Ts);
+Gd = absorbDelay(Gd);
 Gd = setmpcsignals(Gd, 'MV', [1 2 3 4], 'MD', [5 6 7 8]);
 
 end
