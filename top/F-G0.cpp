@@ -122,7 +122,9 @@ struct state_machine_t : public sink<4>, public source<10> {
                     r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                 else
                     r[3] = 0.0, r[4] = 0.2; // f012b[lu]
-                if (ts > 450)
+                if (ts < 450)
+                    r[5] = r[6] = 0; // curb[lu]
+                else
                     r[5] = r[6] = std::min(1.0, (ts - 450.0) / 20.0); // curb[lu]
                 if (_state == S_SLEEP) {
                     r[2] = r[1] - 0.5; // tp2
