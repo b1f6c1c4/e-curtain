@@ -66,7 +66,6 @@ private:
                 std::lock_guard l{ _mtx };
                 auto curr{ std::chrono::system_clock::now() };
                 if (_dt.count() != 0 && curr - _clk > 0.2 * _dt) {
-                    std::cout << now{} << " " << _name << " Warning: abnormal duration skew, skip" << std::endl;
                     _clk += _dt;
                     flag = false;
                 } else {
@@ -86,7 +85,6 @@ private:
             auto aft{ std::chrono::system_clock::now() };
             auto diff{ _clk - aft };
             if (flag && (diff > 1.1 * _dt || diff < 0.9 * _dt)) {
-                std::cout << now{} << " " << _name << " Warning: abnormal clock skew, reset" << std::endl;
                 std::this_thread::sleep_for(_dt);
                 _clk = std::chrono::system_clock::now();
             } else {

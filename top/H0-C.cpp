@@ -68,7 +68,6 @@ int main(int argc, char *argv[]) {
         v[5] = j["current"]["uvi"].get<double>();
         v[6] = j["current"]["wind_speed"].get<double>() <= 5.5; // f012bu
 
-        std::cout << "Info: Got weather: " << v << std::endl;
         i_udp_client << v;
     } };
 

@@ -109,13 +109,3 @@ decltype(auto) operator|(source<N> &a, std::array<T, N> &b) {
         b[i] << arr_t<1>{ v[i] };
     return b;
 }
-
-struct now {
-    friend inline decltype(auto) operator<<(std::ostream &os, now) {
-        auto now{ std::chrono::system_clock::now() };
-        auto itt{ std::chrono::system_clock::to_time_t(now) };
-        os << std::put_time(gmtime(&itt), "%FT%TZ.");
-        os << std::setfill('0') << std::setw(9) << (now.time_since_epoch().count() % 1000000000);
-        return os;
-    }
-};
