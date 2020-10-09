@@ -25,7 +25,7 @@ auto time_of_day() {
     return tm.tm_hour + (tm.tm_min + tm.tm_sec / 60.0) / 60.0;
 }
 
-struct state_machine_t : public sink<4>, public source<10> {
+struct state_machine_t : public sink<4>, public source<13> {
     sink<4> &operator<<(const arr_t<4> &r) override {
         std::lock_guard l{ _mtx };
         if (r == g_AB)
@@ -73,7 +73,7 @@ struct state_machine_t : public sink<4>, public source<10> {
         return *this;
     }
 
-    source<10> &operator>>(arr_t<10> &r) override {
+    source<13> &operator>>(arr_t<13> &r) override {
         std::lock_guard l{ _mtx };
         auto td{ time_of_day() };
         auto ts{ std::chrono::duration_cast<std::chrono::seconds>(
@@ -136,6 +136,9 @@ struct state_machine_t : public sink<4>, public source<10> {
                 break;
         }
         r[1] += _offset, r[2] += _offset;
+        r[10] = static_cast<double>(_state);
+        r[11] = ts;
+        r[12] = _offset;
         return *this;
     }
 
@@ -152,11 +155,11 @@ struct state_machine_t : public sink<4>, public source<10> {
 private:
     std::mutex _mtx;
     enum state_t {
-        S_NOBODY,
-        S_NORMAL,
-        S_SNAP,
-        S_SLEEP,
-        S_RSNAP,
+        S_NOBODY = 0,
+        S_NORMAL = 1,
+        S_SNAP = 2,
+        S_SLEEP = 3,
+        S_RSNAP = 4,
     } _state{ S_NORMAL };
     double _offset{ 0.0 };
     std::chrono::system_clock::time_point _slept;
@@ -219,17 +222,17 @@ int main(int argc, char *argv[]) {
 
     state_machine_t sm;
 
-    udp_client<10> i_udp_client{ host, PORT };
+    udp_client<13> i_udp_client{ host, PORT };
     synchronizer<0> s_sp{ "s_sp", 0s, [&]() {
         i_gpio | sm;
-        arr_t<10> sp{};
+        arr_t<13> sp{};
         sm >> sp;
         std::cout << "Set point: " << sp << std::endl;
         i_udp_client << sp;
     } };
     synchronizer<0> s_spt{ "s_spt", 10s, [&]() {
         sm << arr_t<4>{};
-        arr_t<10> sp{};
+        arr_t<13> sp{};
         sm >> sp;
         std::cout << "Set point: " << sp << std::endl;
         i_udp_client << sp;

@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     std::ofstream logger{ "/var/log/e-curtain.bin", std::ios_base::app };
     constexpr const size_t log_entry{
             sizeof(std::chrono::system_clock::rep) +
-            (5 + 3 + 3 + 2 + 2 + 2 + 3) * sizeof(double) +
+            (5 + 3 + 3 + 2 + 2 + 2 + 3 + 3) * sizeof(double) +
             sizeof(libdumbacModelClass::ExtY)
     };
     constexpr const size_t log_align{ 64 }; // bytes
@@ -74,12 +74,13 @@ int main(int argc, char *argv[]) {
 
 
     std::mutex mtx{};
-    udp_server<10> i_udp_server{ PORT };
+    udp_server<13> i_udp_server{ PORT };
     libdumbacModelClass::ExtU u;
     arr_t<3> h;
     arr_t<2> f012bu;
+    arr_t<3> f;
     synchronizer<0> s_udp{ "s_udp", 0s, [&]() {
-        arr_t<10> v;
+        arr_t<13> v;
         i_udp_server >> v;
         std::lock_guard l{ mtx };
         switch (static_cast<int>(v[0])) {
@@ -109,6 +110,9 @@ int main(int argc, char *argv[]) {
                 u.w0 = v[7];
                 u.w1 = v[8];
                 u.w2 = v[9];
+                f[0] = v[10];
+                f[1] = v[11];
+                f[2] = v[12];
                 break;
             default:
                 std::cout << "Warning: invalid udp package type" << std::endl;
@@ -122,11 +126,11 @@ int main(int argc, char *argv[]) {
     i_mpc.initialize();
     synchronizer<0> s_mpc{ "s_mpc", 10s, [&]() {
         auto clk{ std::chrono::system_clock::now().time_since_epoch().count() };
-        auto ar{ [&]() {
+        auto [ar, fr] = [&]() {
             std::lock_guard l{ mtx };
             u.f012b[1] = std::max(std::min(f012bu[0], f012bu[1]), u.f012b[0]);
             i_mpc.setExternalInputs(&u);
-            return std::array{
+            return std::make_pair(std::array{
                     u.t0,
                     u.y[0],
                     u.y[1],
@@ -147,8 +151,8 @@ int main(int argc, char *argv[]) {
                     u.w0,
                     u.w1,
                     u.w2,
-            };
-        }() };
+            }, f);
+        }();
 
         i_mpc.step();
 
@@ -156,6 +160,7 @@ int main(int argc, char *argv[]) {
         logger.write(reinterpret_cast<const char *>(&clk), sizeof(clk));
         logger.write(reinterpret_cast<const char *>(ar.data()), ar.size() * sizeof(double));
         logger.write(reinterpret_cast<const char *>(&res), sizeof(res));
+        logger.write(reinterpret_cast<const char *>(fr.data()), fr.size() * sizeof(double));
         logger.write(log_pad.data(), log_padding);
         logger.flush();
 
