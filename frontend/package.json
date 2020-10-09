@@ -6,6 +6,7 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
+    "dayjs": "^1.9.1",
     "grommet": "^2.15.1",
     "grommet-controls": "^3.0.1",
     "grommet-icons": "^4.5.0",
