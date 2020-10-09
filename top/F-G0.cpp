@@ -29,9 +29,9 @@ struct state_machine_t : public sink<4>, public source<10> {
     sink<4> &operator<<(const arr_t<4> &r) override {
         std::lock_guard l{ _mtx };
         if (r == g_AB)
-            _offset += 0.5;
+            _offset += 0.3;
         else if (r == g_CD)
-            _offset -= 0.5;
+            _offset -= 0.3;
         else if (r == g_ABC)
             _offset = 0.0;
         switch (_state) {
@@ -139,6 +139,16 @@ struct state_machine_t : public sink<4>, public source<10> {
         return *this;
     }
 
+    void offset(double d) {
+        std::lock_guard l{ _mtx };
+        if (d == +1)
+            _offset += 0.3;
+        else if (d == -1)
+            _offset -= 0.3;
+        else
+            _offset = 0.0;
+    }
+
 private:
     std::mutex _mtx;
     enum state_t {
@@ -231,12 +241,16 @@ int main(int argc, char *argv[]) {
     synchronizer<3> s_recv{ "s_recv", 0s, [&]() {
         arr_t<4> v;
         i_udp_server >> v;
-        i_pwm << arr_t<1>{ v[1] }; // acp
-        s_recv << arr_t<3>{ v[0], v[2], v[3] }; // acm reg1 reg2
-        arr_t<1> pv;
-        s_pwm >> pv;
-        std::lock_guard l{ mtx };
-        write(pv[0], v[0], v[2], v[3]);
+        if (IS_INV(v[0])) {
+            sm.offset(v[1]);
+        } else {
+            i_pwm << arr_t<1>{ v[1] }; // acp
+            s_recv << arr_t<3>{ v[0], v[2], v[3] }; // acm reg1 reg2
+            arr_t<1> pv;
+            s_pwm >> pv;
+            std::lock_guard l{ mtx };
+            write(pv[0], v[0], v[2], v[3]);
+        }
     } };
     s_recv << arr_t<3>{ 0.0, 0.0, 0.0 };
     s_pwm.set_callback([&]() {
