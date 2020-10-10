@@ -31,7 +31,11 @@ pub const LOG_LINE_LENGTH: usize = 384;
 lazy_static! {
     // Log timestamp to position mapper
     pub static ref LOGS: RwLock<BTreeMap<u64, u64>> = RwLock::new(BTreeMap::new());
-    pub static ref SEEKER: Seeker = Seeker::new(env::args().next().unwrap());
+    pub static ref SEEKER: Seeker = {
+        let mut args = env::args();
+        args.next();
+        Seeker::new(args.next().unwrap())
+    };
 }
 
 type FPData = f64;
@@ -57,8 +61,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| App::new()
         .wrap(middleware::Logger::default())
         .service(history)
-        .service(current)
-        .service(fs::Files::new("/", "/var/lib/e-curtain/www").index_file("index.html")))
+        .service(current)) // .service(fs::Files::new("/", "/var/lib/e-curtain/www").index_file("index.html")
         .bind("0.0.0.0:3000")?
         .run()
         .await
@@ -76,6 +79,7 @@ struct SeekerMeta {
 
 impl Seeker {
     fn new(filename: String) -> Seeker {
+        info!("Read log from {}", filename);
         let obj = Self {
             meta: RwLock::new(SeekerMeta {
                 pathfinder: io::BufReader::new(File::open(&filename).unwrap()),
