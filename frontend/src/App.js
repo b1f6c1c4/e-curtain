@@ -52,11 +52,20 @@ const App = () => {
     }
   }, history === undefined ? 200 : 10000);
 
+  const setOffset = async (v) => {
+    try {
+      await ky.post(url + '/offset', { json: { cmd: v } }).json();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <Grommet theme={theme} full>
       <Dashboard
         current={current}
         history={history}
+        setOffset={setOffset}
       />
     </Grommet>
   );
