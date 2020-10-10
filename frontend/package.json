@@ -12,6 +12,7 @@
     "grommet-controls": "^3.0.1",
     "grommet-icons": "^4.5.0",
     "ky": "^0.24.0",
+    "lodash": "^4.17.20",
     "numeral": "^2.0.6",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
