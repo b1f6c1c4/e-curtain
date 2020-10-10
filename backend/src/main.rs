@@ -24,7 +24,7 @@ use std::convert::TryFrom;
 extern crate lazy_static;
 extern crate notify;
 
-pub const LOG_LINE_LENGTH: usize = mem::size_of::<LogLine>();
+pub const LOG_LINE_LENGTH: usize = 384;
 
 lazy_static! {
     // Log timestamp to position mapper
@@ -86,7 +86,7 @@ impl Seeker {
     fn watch_log(&self) -> io::Result<()> {
         // Create a channel to receive the events.
         let (tx, rx) = channel();
-    
+
         // Create a watcher object, delivering debounced events.
         // The notification back-end is selected based on the platform.
         let mut watcher = watcher(tx, Duration::from_secs(10)).unwrap();
@@ -174,7 +174,7 @@ pub struct Room {
 #[derive(Debug, Serialize, Deserialize)]
 struct Ambient {
     t: FPData, // temperature
-    h: FPData, // humidity  
+    h: FPData, // humidity
     uvi: FPData, //
     wind: FPData
 }
@@ -197,11 +197,11 @@ struct FuncDisp {
 #[repr(usize)]
 #[derive(strum_macros::ToString, Debug)]
 enum FuncState {
-    Nobody, 
-    Normal, 
-    Snap,
-    Sleep, 
-    RSNap
+    NOBODY,
+    NORMAL,
+    SNAP,
+    SLEEP,
+    RSNAP
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -219,7 +219,8 @@ pub struct LogLine {
     clk: u64,
     ar: LogAR,
     res: [u8; 19],
-    fr: Func
+    fr: Func,
+    pad: [u8; 40]
 }
 
 #[repr(align(1))]
@@ -239,8 +240,8 @@ pub struct LogAR {
     f012bu1: f64,
     uf012b0: f64,
     uf012b1: f64,
-    ucurb1: f64,
     ucurb0: f64,
+    ucurb1: f64,
     uw0: f64,
     uw1: f64,
     uw2: f64
