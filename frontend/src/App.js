@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Grommet } from 'grommet';
 import ky from 'ky';
+import dayjs from 'dayjs';
 import Dashboard from './Dashboard';
 import { useInterval } from '@react-corekit/use-interval';
 
@@ -23,26 +24,33 @@ const theme = {
   },
 };
 
+const url = '';
+
 const App = () => {
   const [current, setCurrent] = useState(undefined);
   const [history, setHistory] = useState(undefined);
 
   useInterval(async () => {
     try {
-      setCurrent((await ky.get('/current')).json());
+      const res = await ky.get(url + '/current').json();
+      setCurrent(res || null);
     } catch (e) {
       console.error(e);
-      setCurrent(undefined);
+      setCurrent(null);
     }
-  }, 5000);
+  }, current === undefined ? 200 : 10000);
   useInterval(async () => {
     try {
-      setHistory((await ky.get('/history')).json());
+      const res = await ky.get(url + '/history').json();
+      res.forEach((v) => {
+        v.dt = dayjs(v.dt * 1000).format('YYYY-MM-DDTHH:mm:ss');
+      });
+      setHistory(res.length > 2 && res || null);
     } catch (e) {
       console.error(e);
-      setCurrent(undefined);
+      setHistory(null);
     }
-  }, 5000);
+  }, history === undefined ? 200 : 10000);
 
   return (
     <Grommet theme={theme} full>

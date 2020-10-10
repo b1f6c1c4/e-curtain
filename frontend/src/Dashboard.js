@@ -196,7 +196,7 @@ const Dashboard = ({ history, current, setOffset }) => {
   const state = _.get(current, 'f.state') || '(unknown)';
   let slept = _.get(current, 'f.slept') / 60;
   if (slept > 24) slept = 24; if (slept < 0) slept = NaN;
-  slept = `${fmt(Math.floor(slept), 2)}:${fmt((slept - Math.floor(slept)) * 60, 2)}`
+  slept = `${fmt(Math.floor(slept), '00')}:${fmt((slept - Math.floor(slept)) * 60, '00')}`
   const other = _.get(current, 'other');
   const currControl = (
     <Box width={isSmall ? '100%' : '260px'} direction='row' wrap={!isSmall} justify='center' margin={isSmall ? { top: '-2px' } : { right: 'small' }} gap='none'>
@@ -246,6 +246,7 @@ const Dashboard = ({ history, current, setOffset }) => {
           <Entry data={other} label='curbl' />
           <Entry data={other} label='curbu' />
           <Entry data={other} label='f012' />
+          <Entry data={other} label='t0d' />
           <Entry data={other} label='f012bl' />
           <Entry data={other} label='f012bu' />
           <Entry data={other} label='ac1' format='+0.00' />
@@ -254,7 +255,6 @@ const Dashboard = ({ history, current, setOffset }) => {
           <Entry data={other} label='Wsun' />
           <Entry data={other} label='qest' />
           <Entry data={other} label='cest' />
-          <Entry data={other} label='t0d' />
           <Entry data={other} label='tsr' format='+0.0' />
           <Entry data={other} label='tss' format='+0.0' />
         </CardBody>
