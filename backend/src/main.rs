@@ -2,6 +2,7 @@
 use actix_web::{
     error, middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer, get, post, Responder
 };
+use actix_files as fs;
 use notify::{Watcher, RecursiveMode, watcher};
 use std::sync::mpsc::channel;
 use std::time::Duration;
@@ -53,8 +54,9 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| App::new()
         .wrap(middleware::Logger::default())
         .service(history)
-        .service(current))
-        .bind("0.0.0.0:8080")?
+        .service(current)
+        .service(fs::Files::new("/", "/var/lib/e-curtain/www").index_file("index.html")))
+        .bind("0.0.0.0:3000")?
         .run()
         .await
 }
