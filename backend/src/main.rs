@@ -116,6 +116,7 @@ impl Seeker {
                     };
                     LOGS.write().insert(timestamp, meta.pos);
                     meta.pos += LOG_LINE_LENGTH as u64;
+                    debug!("Found line with time {} in log at {}, adv to {}", timestamp, current_pos, meta.pos);
                 },
                 Err(e) => {
                     if e.kind() == io::ErrorKind::UnexpectedEof {
