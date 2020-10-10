@@ -56,3 +56,10 @@ debug-2: $(DEBUGGER_DIR)/debugger
 undeploy-2:
 	script/undeploy.sh H2 $(HOST2)
 	script/undeploy.sh H0-C $(HOST2)
+
+FRONTEND=$(wildcard frontend/src/*.js)
+FRONTEND+=$(wildcard frontend/public/*)
+FRONTEND+=$(wildcard frontend/package*.json)
+
+frontend/build/index.html: $(FRONTEND)
+	cd frontend && npm run build
