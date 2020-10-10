@@ -22,6 +22,8 @@ use std::convert::TryFrom;
 
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate log;
 extern crate notify;
 
 pub const LOG_LINE_LENGTH: usize = 384;
@@ -50,6 +52,7 @@ async fn current() -> Result<HttpResponse, Error>  {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init();
     thread::spawn(move || SEEKER.watch_log());
     HttpServer::new(|| App::new()
         .wrap(middleware::Logger::default())
@@ -151,9 +154,11 @@ impl Seeker {
 fn read_to_line(file: &mut File) -> LogLine {
     let mut buffer = [0u8; LOG_LINE_LENGTH];
     file.read_exact(&mut buffer).unwrap();
-    unsafe {
+    let res = unsafe {
         ptr::read_unaligned(&buffer as *const u8 as *const LogLine)
-    }
+    };
+    trace!("DECODE LINE: {:?} to {:?}", buffer, res);
+    res
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -214,6 +219,7 @@ pub struct Current {
 
 // Log representation of one line
 // We don't bother byte orders for ptr::read will read the data in the exact ordering
+#[derive(Debug)]
 #[repr(align(1))]
 pub struct LogLine {
     clk: u64,
@@ -223,6 +229,7 @@ pub struct LogLine {
     pad: [u8; 40]
 }
 
+#[derive(Debug)]
 #[repr(align(1))]
 pub struct LogAR {
     ut0: f64,
@@ -249,16 +256,18 @@ pub struct LogAR {
 
 impl LogLine {
     fn to_history(&self) -> Historical {
-        Historical {
+        let res = Historical {
             dt: self.clk,
             t1: self.ar.uy0,
             tp1: self.ar.utp0,
             t2: self.ar.uy1,
             tp2: self.ar.utp1
-        }
+        };
+        debug!("DECODE: {:?} to {:?}", self, res);
+        res
     }
     fn to_current(&self) -> Current {
-        Current {
+        let res = Current {
             r1: Room {
                 t: self.ar.uy0,
                 tp: self.ar.utp0,
@@ -280,6 +289,8 @@ impl LogLine {
                 offset: self.fr.offset,
                 slept: self.fr.slept
             }
-        }
+        };
+        debug!("DECODE: {:?} to {:?}", self, res);
+        res
     }
 }
