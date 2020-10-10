@@ -45,7 +45,7 @@ const App = () => {
       res.forEach((v) => {
         v.dt = dayjs(v.dt * 1000).format('YYYY-MM-DDTHH:mm:ss');
       });
-      setHistory(res.length > 2 && res || null);
+      setHistory((res.length > 2 && res) || null);
     } catch (e) {
       console.error(e);
       setHistory(null);
