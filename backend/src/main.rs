@@ -40,7 +40,7 @@ async fn history(web::Query((since, until)): web::Query<(u64, u64)>) -> Result<H
     Ok(HttpResponse::Ok().json(data))
 }
 
-#[get("/curent")]
+#[get("/current")]
 async fn current() -> Result<HttpResponse, Error>  {
     let last = SEEKER.last();
     let data = last.map(|l| l.to_current());
