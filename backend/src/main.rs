@@ -107,6 +107,8 @@ impl Seeker {
         loop {
             let mut line_buffer = [0u8; LOG_LINE_LENGTH];
             let mut meta = self.meta.write();
+            let current_pos = meta.pos;
+            meta.pathfinder.seek(io::SeekFrom::Start(current_pos)).unwrap();
             match meta.pathfinder.read_exact(&mut line_buffer) {
                 Ok(_) => {
                     let timestamp = unsafe {
