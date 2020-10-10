@@ -2,6 +2,7 @@
 #include <mutex>
 #include "net/udp_client.hpp"
 #include "net/udp_server.hpp"
+#include "dsp/persistent.hpp"
 #include "dsp/pwm.hpp"
 #include "dsp/overlay.hpp"
 #include "dsp/sleep.hpp"
@@ -26,6 +27,21 @@ auto time_of_day() {
 }
 
 struct state_machine_t : public sink<4>, public source<13> {
+    state_machine_t() {
+        arr_t<3> v{};
+        _persistent >> v;
+        if (!IS_INV(v[0])) {
+            _state = static_cast<state_t>(v[0]);
+            _offset = v[1];
+            _slept = std::chrono::system_clock::time_point{ std::chrono::system_clock::duration{
+                    *reinterpret_cast<const std::chrono::system_clock::rep *>(&v[2]) } };
+            std::cout << "Info: recovered state " << _state;
+            std::cout << " offset " << _offset;
+            std::cout << " slept " << _slept.time_since_epoch().count();
+            std::cout << std::endl;
+        }
+    }
+
     sink<4> &operator<<(const arr_t<4> &r) override {
         std::lock_guard l{ _mtx };
         if (r == g_AB)
@@ -70,6 +86,12 @@ struct state_machine_t : public sink<4>, public source<13> {
                     _state = S_SLEEP;
                 break;
         }
+        arr_t<3> v{};
+        v[0] = static_cast<double>(_state);
+        v[1] = _offset;
+        auto sl{ _slept.time_since_epoch().count() };
+        v[2] = *reinterpret_cast<const double *>(&sl);
+        _persistent << v;
         return *this;
     }
 
@@ -163,6 +185,7 @@ private:
     } _state{ S_NORMAL };
     double _offset{ 0.0 };
     std::chrono::system_clock::time_point _slept;
+    persistent<3> _persistent{ "F-G0.bin" };
 };
 
 int main(int argc, char *argv[]) {

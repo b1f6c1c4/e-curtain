@@ -6,6 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "io/si7021.hpp"
+#include "dsp/persistent.hpp"
 #include "dsp/filter.hpp"
 #include "net/udp_client.hpp"
 #include "net/udp_server.hpp"
@@ -65,6 +66,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    persistent<2> _persistent{ "H1-G1.bin" };
+
     auto chipfd{ open("/dev/gpiochip0", 0) };
     if (chipfd < 0)
         throw std::runtime_error("Cannot open gpio dev");
@@ -86,10 +89,22 @@ int main(int argc, char *argv[]) {
     udp_server<3> i_udp_server{ PORT };
 
     synchronizer<3> s_udp{ "s_udp", 0s, };
-    s_udp << arr_t<3>{ 0.0, 0.0, 0.0 };
-
     synchronizer<3> s_gpio{ "s_gpio", 0s, true };
-    s_gpio << arr_t<3>{ 0.0, 0.0, 0.0 };
+
+    {
+        arr_t<3> sv{ 0.0, 0.0, 0.0 };
+        arr_t<2> v{};
+        _persistent >> v;
+        if (!IS_INV(v[0])) {
+            sv[0] = v[0];
+            sv[1] = v[1];
+        }
+        std::cout << "Info: recovered cur " << sv[0];
+        std::cout << " win " << sv[1];
+        std::cout << std::endl;
+        s_udp << sv;
+        s_gpio << sv;
+    }
 
     s_udp.set_callback([&]() {
         arr_t<3> v;
@@ -137,6 +152,7 @@ int main(int argc, char *argv[]) {
         {
             std::unique_lock l{ mtx };
             s_gpio << next;
+            _persistent << arr_t<2>{ next[0], next[1] };
         }
     });
 
