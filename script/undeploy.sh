@@ -2,8 +2,11 @@
 
 set -eux
 
-BINARY="$1"
-HOST="$2"
+DIR="$1"
+BINARY="${DIR##*/}"
+shift
+HOST="$1"
+shift
 
 # shellcheck disable=SC2087
 ssh "pi@$HOST" <<EOF

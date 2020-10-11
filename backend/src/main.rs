@@ -32,9 +32,13 @@ lazy_static! {
     // Log timestamp to position mapper
     pub static ref LOGS: RwLock<BTreeMap<u64, u64>> = RwLock::new(BTreeMap::new());
     pub static ref SEEKER: Seeker = {
-        let mut args = env::args();
-        args.next();
-        Seeker::new(args.next().unwrap())
+        if cfg!(debug_assertions) {
+            let mut args = env::args();
+            args.next();
+            Seeker::new(args.next().unwrap())
+        } else {
+            Seeker::new("/var/log/e-curtain.bin".to_string())
+        }
     };
 }
 
@@ -61,8 +65,13 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| App::new()
         .wrap(middleware::Logger::default())
         .service(history)
-        .service(current)) // .service(fs::Files::new("/", "/var/lib/e-curtain/www").index_file("index.html")
-        .bind("0.0.0.0:3000")?
+        .service(current)
+        .service(fs::Files::new("/", if cfg!(debug_assertions) {
+            "."
+        } else {
+            "/var/lib/e-curtain/www"
+        }).index_file("index.html")))
+        .bind(if cfg!(debug_assertions) { "0.0.0.0:3000" } else { "0.0.0.0:80" })?
         .run()
         .await
 }
@@ -120,7 +129,6 @@ impl Seeker {
                     };
                     LOGS.write().insert(timestamp, meta.pos);
                     meta.pos += LOG_LINE_LENGTH as u64;
-                    debug!("Found line with time {} in log at {}, adv to {}", timestamp, current_pos, meta.pos);
                 },
                 Err(e) => {
                     if e.kind() == io::ErrorKind::UnexpectedEof {
@@ -164,7 +172,6 @@ fn read_to_line(file: &mut File) -> LogLine {
     let res = unsafe {
         ptr::read_unaligned(&buffer as *const u8 as *const LogLine)
     };
-    trace!("DECODE LINE: {:?} to {:?}", buffer, res);
     res
 }
 
@@ -233,7 +240,6 @@ pub struct LogLine {
     ar: LogAR,
     res: [u8; 19],
     fr: Func,
-    pad: [u8; 40]
 }
 
 #[derive(Debug)]
@@ -270,7 +276,6 @@ impl LogLine {
             t2: self.ar.uy1,
             tp2: self.ar.utp1
         };
-        debug!("DECODE: {:?} to {:?}", self, res);
         res
     }
     fn to_current(&self) -> Current {
@@ -297,7 +302,6 @@ impl LogLine {
                 slept: self.fr.slept
             }
         };
-        debug!("DECODE: {:?} to {:?}", self, res);
         res
     }
 }

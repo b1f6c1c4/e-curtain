@@ -583,6 +583,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "134951f4028bdadb9b84baf4232681efbf277da25144b9b0ad65df75946c422b"
 
 [[package]]
+name = "e-curtain-backend"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-service",
+ "actix-web",
+ "crossbeam-channel",
+ "env_logger",
+ "futures",
+ "json",
+ "lazy_static",
+ "log",
+ "notify",
+ "num_enum",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "strum",
+ "strum_macros",
+ "tokio",
+]
+
+[[package]]
 name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -651,29 +674,6 @@ name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
-
-[[package]]
-name = "frontend"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-service",
- "actix-web",
- "crossbeam-channel",
- "env_logger",
- "futures",
- "json",
- "lazy_static",
- "log",
- "notify",
- "num_enum",
- "parking_lot",
- "serde",
- "serde_json",
- "strum",
- "strum_macros",
- "tokio",
-]
 
 [[package]]
 name = "fsevent"
