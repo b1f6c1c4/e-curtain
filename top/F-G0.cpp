@@ -215,20 +215,20 @@ int main(int argc, char *argv[]) {
         auto p{ 180.0 * acp };
         switch (static_cast<int>(acm)) {
             case 2:
-                p = 180.0 - p;
                 m = 0.0;
                 break;
             case 1:
-                p = 180.0 - p;
                 m = 30.0;
                 break;
             case 0:
                 m = 60.0;
                 break;
             case -1:
+                p = 180.0 - p;
                 m = 150.0;
                 break;
             case -2:
+                p = 180.0 - p;
                 m = 180.0;
                 break;
             default:
