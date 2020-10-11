@@ -46,7 +46,7 @@ type FPData = f64;
 
 #[get("/history")]
 async fn history(web::Query((since, until)): web::Query<(u64, u64)>) -> Result<HttpResponse, Error>  {
-    let lines = SEEKER.read_log(since, until);
+    let lines = SEEKER.read_log(info.since * 1000000, info.until * 1000000);
     let data = lines.into_iter().map(|l| l.to_history()).collect::<Vec<_>>();
     Ok(HttpResponse::Ok().json(data))
 }
@@ -225,6 +225,7 @@ enum FuncState {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Current {
+    dt: u64,
     r1: Room,
     r2: Room,
     r0: Ambient,
@@ -302,7 +303,7 @@ pub struct LogAR {
 impl LogLine {
     fn to_history(&self) -> Historical {
         let res = Historical {
-            dt: self.clk,
+            dt: self.clk / 1000000,
             t1: self.ar.uy0,
             tp1: self.ar.utp0,
             t2: self.ar.uy1,
@@ -312,6 +313,7 @@ impl LogLine {
     }
     fn to_current(&self) -> Current {
         let res = Current {
+            dt: self.clk / 1000000,
             r1: Room {
                 t: self.ar.uy0,
                 tp: self.ar.utp0,
