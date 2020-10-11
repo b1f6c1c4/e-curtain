@@ -1,25 +1,22 @@
-
-use actix_web::{
-    middleware, web, App, Error, HttpResponse, HttpServer, get, post
-};
 use actix_files as fs;
-use notify::{Watcher, RecursiveMode, watcher};
-use std::sync::mpsc::channel;
-use std::time::Duration;
+use actix_web::{get, middleware, post, web, App, Error, HttpResponse, HttpServer};
+use notify::{watcher, RecursiveMode, Watcher};
+use num_enum::TryFromPrimitive;
+use parking_lot::*;
 use serde::{Deserialize, Serialize};
-use std::{mem, ptr};
 use std::collections::BTreeMap;
-use std::io;
-use std::io::prelude::*;
-use std::thread;
+use std::convert::TryFrom;
 use std::env;
 use std::fs::File;
-use parking_lot::*;
-use std::string::ToString;
-use strum_macros;
-use num_enum::TryFromPrimitive;
-use std::convert::TryFrom;
+use std::io;
+use std::io::prelude::*;
 use std::io::Read;
+use std::string::ToString;
+use std::sync::mpsc::channel;
+use std::thread;
+use std::time::Duration;
+use std::{mem, ptr};
+use strum_macros;
 use tokio::net::UdpSocket;
 
 #[macro_use]
@@ -45,9 +42,7 @@ async fn offset(cmd: web::Json<OffsetCmd>) -> Result<HttpResponse, Error> {
     let nan = std::f64::NAN;
     let v = cmd.cmd;
     let data = [nan, v, nan, nan];
-    let data_packet = unsafe {
-        &mem::transmute::<_, [u8; 4 * 8]>(data)
-    };
+    let data_packet = unsafe { &mem::transmute::<_, [u8; 4 * 8]>(data) };
     socket.connect(&*UDP_ADDR).await?;
     socket.send(&data_packet[..]).await?;
     Ok(HttpResponse::Ok().json(()))
@@ -56,12 +51,15 @@ async fn offset(cmd: web::Json<OffsetCmd>) -> Result<HttpResponse, Error> {
 #[get("/history")]
 async fn history(info: web::Query<HistoryRequest>) -> Result<HttpResponse, Error> {
     let lines = SEEKER.read_log(info.since * 1000000, info.until * 1000000);
-    let data = lines.into_iter().map(|l| l.to_history()).collect::<Vec<_>>();
+    let data = lines
+        .into_iter()
+        .map(|l| l.to_history())
+        .collect::<Vec<_>>();
     Ok(HttpResponse::Ok().json(data))
 }
 
 #[get("/current")]
-async fn current() -> Result<HttpResponse, Error>  {
+async fn current() -> Result<HttpResponse, Error> {
     let last = SEEKER.last();
     let data = last.map(|l| l.to_current());
     Ok(HttpResponse::Ok().json(data))
@@ -71,23 +69,35 @@ async fn current() -> Result<HttpResponse, Error>  {
 async fn main() -> std::io::Result<()> {
     env_logger::init();
     thread::spawn(move || SEEKER.watch_log());
-    HttpServer::new(|| App::new()
-        .wrap(middleware::Logger::default())
-        .service(history)
-        .service(current)
-        .service(fs::Files::new("/", if cfg!(debug_assertions) {
-            "."
-        } else {
-            "/var/lib/e-curtain/www"
-        }).index_file("index.html")))
-        .bind(if cfg!(debug_assertions) { "0.0.0.0:3000" } else { "0.0.0.0:80" })?
-        .run()
-        .await
+    HttpServer::new(|| {
+        App::new()
+            .wrap(middleware::Logger::default())
+            .service(history)
+            .service(current)
+            .service(
+                fs::Files::new(
+                    "/",
+                    if cfg!(debug_assertions) {
+                        "."
+                    } else {
+                        "/var/lib/e-curtain/www"
+                    },
+                )
+                .index_file("index.html"),
+            )
+    })
+    .bind(if cfg!(debug_assertions) {
+        "0.0.0.0:3000"
+    } else {
+        "0.0.0.0:80"
+    })?
+    .run()
+    .await
 }
 
 pub struct Seeker {
     filename: String,
-    meta: RwLock<SeekerMeta>
+    meta: RwLock<SeekerMeta>,
 }
 
 struct SeekerMeta {
@@ -101,9 +111,9 @@ impl Seeker {
         let obj = Self {
             meta: RwLock::new(SeekerMeta {
                 pathfinder: io::BufReader::new(File::open(&filename).unwrap()),
-                pos: 0
+                pos: 0,
             }),
-            filename
+            filename,
         };
         obj.refresh_logs();
         obj
@@ -115,13 +125,15 @@ impl Seeker {
         // Create a watcher object, delivering debounced events.
         // The notification back-end is selected based on the platform.
         let mut watcher = watcher(tx, Duration::from_secs(1)).unwrap();
-        watcher.watch(&self.filename, RecursiveMode::NonRecursive).unwrap();
+        watcher
+            .watch(&self.filename, RecursiveMode::NonRecursive)
+            .unwrap();
         loop {
             match rx.recv() {
                 Ok(_) => {
                     self.refresh_logs();
-                },
-                Err(e) => panic!("{:?}", e)
+                }
+                Err(e) => panic!("{:?}", e),
             }
         }
     }
@@ -130,15 +142,16 @@ impl Seeker {
             let mut line_buffer = [0u8; LOG_LINE_LENGTH];
             let mut meta = self.meta.write();
             let current_pos = meta.pos;
-            meta.pathfinder.seek(io::SeekFrom::Start(current_pos)).unwrap();
+            meta.pathfinder
+                .seek(io::SeekFrom::Start(current_pos))
+                .unwrap();
             match meta.pathfinder.read_exact(&mut line_buffer) {
                 Ok(_) => {
-                    let timestamp = unsafe {
-                        ptr::read_unaligned(&line_buffer as *const u8 as *const u64)
-                    };
+                    let timestamp =
+                        unsafe { ptr::read_unaligned(&line_buffer as *const u8 as *const u64) };
                     LOGS.write().insert(timestamp, meta.pos);
                     meta.pos += LOG_LINE_LENGTH as u64;
-                },
+                }
                 Err(e) => {
                     if e.kind() == io::ErrorKind::UnexpectedEof {
                         break;
@@ -178,33 +191,31 @@ impl Seeker {
 fn read_to_line(file: &mut File) -> LogLine {
     let mut buffer = [0u8; LOG_LINE_LENGTH];
     file.read_exact(&mut buffer).unwrap();
-    let res = unsafe {
-        ptr::read_unaligned(&buffer as *const u8 as *const LogLine)
-    };
+    let res = unsafe { ptr::read_unaligned(&buffer as *const u8 as *const LogLine) };
     res
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Historical {
-    dt: u64, // unix timestamp in seconds
-    t1: FPData, // actual temperature of room 1
+    dt: u64,     // unix timestamp in seconds
+    t1: FPData,  // actual temperature of room 1
     tp1: FPData, // desired temperature of room 1
-    t2: FPData, // actual temperature of room 2
+    t2: FPData,  // actual temperature of room 2
     tp2: FPData, // desired temperature of room 2
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Room {
-    t: FPData, // actual room temperature
+    t: FPData,  // actual room temperature
     tp: FPData, // desired room temperature
-    h: FPData, // relative roome humidity
+    h: FPData,  // relative roome humidity
 }
 #[derive(Debug, Serialize, Deserialize)]
 struct Ambient {
-    t: FPData, // temperature
-    h: FPData, // humidity
+    t: FPData,   // temperature
+    h: FPData,   // humidity
     uvi: FPData, //
-    wind: FPData
+    wind: FPData,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -229,7 +240,7 @@ enum FuncState {
     NORMAL,
     SNAP,
     SLEEP,
-    RSNAP
+    RSNAP,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -239,7 +250,7 @@ pub struct Current {
     r2: Room,
     r0: Ambient,
     f: FuncDisp,
-    other: Other
+    other: Other,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -267,7 +278,7 @@ pub struct Other {
     qest: f64,
     cest: f64,
     tsr: f64,
-    tss: f64
+    tss: f64,
 }
 
 // Log representation of one line
@@ -306,7 +317,7 @@ pub struct LogAR {
     ucurb1: f64,
     uw0: f64,
     uw1: f64,
-    uw2: f64
+    uw2: f64,
 }
 
 impl LogLine {
@@ -316,7 +327,7 @@ impl LogLine {
             t1: self.ar.uy0,
             tp1: self.ar.utp0,
             t2: self.ar.uy1,
-            tp2: self.ar.utp1
+            tp2: self.ar.utp1,
         };
         res
     }
@@ -326,23 +337,25 @@ impl LogLine {
             r1: Room {
                 t: self.ar.uy0,
                 tp: self.ar.utp0,
-                h: self.ar.h1
+                h: self.ar.h1,
             },
             r2: Room {
                 t: self.ar.uy1,
                 tp: self.ar.utp1,
-                h: self.ar.h2
+                h: self.ar.h2,
             },
             r0: Ambient {
                 t: self.ar.ut0,
                 h: self.ar.h0,
                 uvi: self.ar.usun2,
-                wind: 0f64 // TODO: fill this with actual data
+                wind: 0f64, // TODO: fill this with actual data
             },
             f: FuncDisp {
-                state: FuncState::try_from(self.fr.state as usize).unwrap().to_string(),
+                state: FuncState::try_from(self.fr.state as usize)
+                    .unwrap()
+                    .to_string(),
                 offset: self.fr.offset,
-                slept: self.fr.slept
+                slept: self.fr.slept,
             },
             other: Other {
                 acm: self.res_g[2],
@@ -368,8 +381,8 @@ impl LogLine {
                 qest: self.res_q[0],
                 cest: self.res_q[1],
                 tsr: self.ar.usun0,
-                tss: self.ar.usun1
-            }
+                tss: self.ar.usun1,
+            },
         };
         res
     }
