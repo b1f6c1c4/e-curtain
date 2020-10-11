@@ -201,15 +201,15 @@ struct Ambient {
 #[derive(Debug, Serialize, Deserialize)]
 struct Func {
     state: f64,
-    offset: f64,
     slept: u64,
+    offset: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct FuncDisp {
     state: String,
-    offset: f64,
     slept: u64,
+    offset: f64,
 }
 
 #[derive(Eq, PartialEq, TryFromPrimitive)]
@@ -228,7 +228,36 @@ pub struct Current {
     r1: Room,
     r2: Room,
     r0: Ambient,
-    f: FuncDisp
+    f: FuncDisp,
+    other: Other
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Other {
+    acm: f64,
+    acp: f64,
+    reg1: f64,
+    reg2: f64,
+    fan: f64,
+    win: f64,
+    cur: f64,
+    w0: f64,
+    w1: f64,
+    w2: f64,
+    curbl: f64,
+    curbu: f64,
+    f012: f64,
+    t0d: f64,
+    f012bl: f64,
+    f012bu: f64,
+    ac1: f64,
+    ac2: f64,
+    t1m0: f64,
+    Wsun: f64,
+    qest: f64,
+    cest: f64,
+    tsr: f64,
+    tss: f64
 }
 
 // Log representation of one line
@@ -238,7 +267,10 @@ pub struct Current {
 pub struct LogLine {
     clk: u64,
     ar: LogAR,
-    res: [u8; 19],
+    res_u: [f64; 8],
+    res_par: [f64; 2],
+    res_g: [f64; 7],
+    res_q: [f64; 2],
     fr: Func,
 }
 
@@ -300,6 +332,32 @@ impl LogLine {
                 state: FuncState::try_from(self.fr.state as usize).unwrap().to_string(),
                 offset: self.fr.offset,
                 slept: self.fr.slept
+            },
+            other: Other {
+                acm: self.res_g[2],
+                acp: self.res_g[3],
+                reg1: self.res_g[0],
+                reg2: self.res_g[1],
+                fan: self.res_g[4],
+                win: self.res_g[5],
+                cur: self.res_g[6],
+                w0: self.ar.uw0,
+                w1: self.ar.uw1,
+                w2: self.ar.uw2,
+                curbl: self.ar.ucurb0,
+                curbu: self.ar.ucurb1,
+                f012: self.res_u[2],
+                t0d: self.res_u[3],
+                f012bl: self.ar.uf012b0,
+                f012bu: self.ar.uf012b1,
+                ac1: self.res_u[0],
+                ac2: self.res_u[1],
+                t1m0: self.res_par[0],
+                Wsun: self.res_par[1],
+                qest: self.res_q[0],
+                cest: self.res_q[1],
+                tsr: self.ar.usun0,
+                tss: self.ar.usun1
             }
         };
         res
