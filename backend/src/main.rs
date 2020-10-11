@@ -1,6 +1,6 @@
 
 use actix_web::{
-    error, middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer, get, post, Responder
+    middleware, web, App, Error, HttpResponse, HttpServer, get, post
 };
 use actix_files as fs;
 use notify::{Watcher, RecursiveMode, watcher};
@@ -19,6 +19,8 @@ use std::string::ToString;
 use strum_macros;
 use num_enum::TryFromPrimitive;
 use std::convert::TryFrom;
+use std::io::Read;
+use tokio::net::UdpSocket;
 
 #[macro_use]
 extern crate lazy_static;
@@ -31,23 +33,24 @@ pub const LOG_LINE_LENGTH: usize = 384;
 lazy_static! {
     // Log timestamp to position mapper
     pub static ref LOGS: RwLock<BTreeMap<u64, u64>> = RwLock::new(BTreeMap::new());
-    pub static ref SEEKER: Seeker = {
-        if cfg!(debug_assertions) {
-            let mut args = env::args();
-            args.next();
-            Seeker::new(args.next().unwrap())
-        } else {
-            Seeker::new("/var/log/e-curtain.bin".to_string())
-        }
-    };
+    pub static ref SEEKER: Seeker = Seeker::new(env::args().nth(1).unwrap());
+    pub static ref UDP_ADDR: String = format!("{}:33706", env::args().nth(2).unwrap());
 }
 
 type FPData = f64;
 
-#[derive(Deserialize)]
-struct HistoryRequest {
-    since: u64,
-    until: u64,
+#[post("/offset")]
+async fn offset(cmd: web::Json<OffsetCmd>) -> Result<HttpResponse, Error> {
+    let mut socket = UdpSocket::bind("0.0.0.0:0").await?;
+    let nan = std::f64::NAN;
+    let v = cmd.cmd;
+    let data = [nan, v, nan, nan];
+    let data_packet = unsafe {
+        &mem::transmute::<_, [u8; 4 * 8]>(data)
+    };
+    socket.connect(&*UDP_ADDR).await?;
+    socket.send(&data_packet[..]).await?;
+    Ok(HttpResponse::Ok().json(()))
 }
 
 #[get("/history")]
@@ -370,4 +373,15 @@ impl LogLine {
         };
         res
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct OffsetCmd {
+    cmd: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct HistoryRequest {
+    since: u64,
+    until: u64,
 }
