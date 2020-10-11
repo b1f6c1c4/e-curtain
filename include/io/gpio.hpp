@@ -14,9 +14,8 @@
 
 template <size_t NI, size_t NO>
 struct gpio : public sink<NO>, public source<NI> {
-    gpio(const std::string &dev, const std::array<int, NI> &pi, const std::array<int, NO> &po,
-         const std::array<bool, NO> &slow)
-            : _chipfd{ open(dev.c_str(), 0) }, _ifd{ -1 }, _ofd{ -1 }, _slow{ slow } {
+    gpio(const std::string &dev, const std::array<int, NI> &pi, const std::array<int, NO> &po)
+            : _chipfd{ open(dev.c_str(), 0) }, _ifd{ -1 }, _ofd{ -1 } {
         if (_chipfd < 0)
             throw std::runtime_error("Cannot open gpio dev");
 
@@ -54,21 +53,17 @@ struct gpio : public sink<NO>, public source<NI> {
         constexpr auto min{ 0.55ms };
         constexpr auto max{ 2.41ms };
         constexpr auto period{ 3ms };
+        constexpr auto lax{ 250ms };
 
         gpiohandle_data d{};
         std::fill(d.values, d.values + NO, 0);
         for (size_t i{ 0 }; i < NO; i++) {
-            auto duration{ _slow[i] ? 0.85s : 0.25s };
-            auto incr{ duration / period * 0.9 };
-            auto t0{ std::chrono::steady_clock::now() + duration };
-            for (size_t j{ 0 };; j++) {
+            for (size_t j{ 0 }; j < 1; j++) {
                 double v;
                 if (IS_INV(r[i]))
                     v = 0;
-                else if (IS_INV(_prev[i]) || j > incr)
-                    v = r[i];
                 else
-                    v = j / incr * (r[i] - _prev[i]) + _prev[i];
+                    v = r[i];
                 auto dur{ min + (max - min) * v / 180 };
                 d.values[i] = IS_INV(r[i]) ? 0 : 1;
                 if (ioctl(_ofd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &d) < 0)
@@ -78,9 +73,9 @@ struct gpio : public sink<NO>, public source<NI> {
                 if (ioctl(_ofd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &d) < 0)
                     throw std::runtime_error("Cannot write gpio");
                 std::this_thread::sleep_for(period - dur);
-                if (t0 <= std::chrono::steady_clock::now())
-                    break;
             }
+            if (!IS_INV(r[i]))
+                std::this_thread::sleep_for(lax);
         }
         _prev = r;
         return *this;
@@ -95,7 +90,6 @@ private:
     int _chipfd, _ifd, _ofd;
     debouncer<NI> _deb;
     arr_t<NO> _prev;
-    std::array<bool, NO> _slow;
     std::thread _th;
 
     void thread_entry() {
