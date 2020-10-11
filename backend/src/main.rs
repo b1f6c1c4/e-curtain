@@ -44,8 +44,14 @@ lazy_static! {
 
 type FPData = f64;
 
+#[derive(Deserialize)]
+struct HistoryRequest {
+    since: u64,
+    until: u64,
+}
+
 #[get("/history")]
-async fn history(web::Query((since, until)): web::Query<(u64, u64)>) -> Result<HttpResponse, Error>  {
+async fn history(info: web::Query<HistoryRequest>) -> Result<HttpResponse, Error> {
     let lines = SEEKER.read_log(info.since * 1000000, info.until * 1000000);
     let data = lines.into_iter().map(|l| l.to_history()).collect::<Vec<_>>();
     Ok(HttpResponse::Ok().json(data))
