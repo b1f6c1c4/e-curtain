@@ -207,14 +207,14 @@ struct Ambient {
 #[derive(Debug, Serialize, Deserialize)]
 struct Func {
     state: f64,
-    slept: u64,
+    slept: f64,
     offset: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct FuncDisp {
     state: String,
-    slept: u64,
+    slept: f64,
     offset: f64,
 }
 
