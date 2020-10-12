@@ -206,7 +206,7 @@ const Dashboard = ({ history, current, setOffset }) => {
           <Box align='center'>
             <Text weight='bold' color='dark' margin='xsmall' style={{ marginBottom: 0 }}>{state}</Text>
             <Text color='dark' margin='xxsmall'>{slept}</Text>
-            <Text weight='bold' color='warm' margin='xxsmall'>{fmt(_.get(current, 'f.offset'), '+0.0')}&#8451;</Text>
+            <Text weight='bold' color='warm' margin='xxsmall'>{fmt(_.get(current, 'f.offset'), '+0.00')}&#8451;</Text>
           </Box>
         </CardBody>
         <CardFooter gap='none' direction='row' backgrund='light' justify='evenly'>
@@ -233,8 +233,8 @@ const Dashboard = ({ history, current, setOffset }) => {
       <Card width={isSmall ? '120px' : '100%'} height={{ max: isSmall ? '165px' : undefined }} background='light' margin='small' flex='grow'>
         <CardHeader pad='small' justify='center' background='dark'>F/C/H0 output</CardHeader>
         <CardBody direction={isSmall ? 'column' : 'row'} pad='small' wrap justify={isSmall ? 'start' : 'evenly'} overflow={isSmall ? 'scroll' : undefined}>
-          <Entry data={other} label='acm' format='+0.00' />
-          <Entry data={other} label='acp' format='+0.00' />
+          <Entry data={other} label='acm' format='+0' />
+          <Entry data={other} label='acp' />
           <Entry data={other} label='reg1' />
           <Entry data={other} label='reg2' />
           <Entry data={other} label='fan' format='0' />

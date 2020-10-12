@@ -38,7 +38,7 @@ const App = () => {
       console.error(e);
       setCurrent(null);
     }
-  }, current === undefined ? 200 : 10000);
+  }, current === undefined ? 200 : 1000);
   useInterval(async () => {
     try {
       const res = await ky.get(url + '/history').json();
@@ -50,7 +50,7 @@ const App = () => {
       console.error(e);
       setHistory(null);
     }
-  }, history === undefined ? 200 : 10000);
+  }, history === undefined ? 200 : 1000);
 
   const setOffset = async (v) => {
     try {

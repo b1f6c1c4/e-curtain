@@ -45,9 +45,9 @@ struct state_machine_t : public sink<4>, public source<13> {
     sink<4> &operator<<(const arr_t<4> &r) override {
         std::lock_guard l{ _mtx };
         if (r == g_AB)
-            _offset += 0.3;
+            _offset += 0.25;
         else if (r == g_CD)
-            _offset -= 0.3;
+            _offset -= 0.25;
         else if (r == g_ABC)
             _offset = 0.0;
         switch (_state) {
@@ -104,7 +104,7 @@ struct state_machine_t : public sink<4>, public source<13> {
         switch (_state) {
             case S_NOBODY:
                 r[1] = 20.0, r[2] = 20.0; // tp[12]
-                r[3] = 0.5, r[4] = 0.5; // f012b[lu]
+                r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                 r[5] = 0.5, r[6] = 0.5; // curb[lu]
                 r[7] = 0.5, r[8] = 0.0, r[9] = 0.0; // w[012]
                 break;
@@ -167,9 +167,9 @@ struct state_machine_t : public sink<4>, public source<13> {
     void offset(double d) {
         std::lock_guard l{ _mtx };
         if (d == +1)
-            _offset += 0.3;
+            _offset += 0.25;
         else if (d == -1)
-            _offset -= 0.3;
+            _offset -= 0.25;
         else
             _offset = 0.0;
     }
