@@ -34,8 +34,6 @@ lazy_static! {
     pub static ref UDP_ADDR: String = format!("{}:33706", env::args().nth(2).unwrap());
 }
 
-type FPData = f64;
-
 #[post("/offset")]
 async fn offset(cmd: web::Json<OffsetCmd>) -> Result<HttpResponse, Error> {
     let mut socket = UdpSocket::bind("0.0.0.0:0").await?;
@@ -197,32 +195,36 @@ fn read_to_line(file: &mut File) -> LogLine {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Historical {
-    dt: u64,     // unix timestamp in seconds
-    t1: FPData,  // actual temperature of room 1
-    tp1: FPData, // desired temperature of room 1
-    t2: FPData,  // actual temperature of room 2
-    tp2: FPData, // desired temperature of room 2
+    dt: u64,  // unix timestamp in seconds
+    t1: f64,  // actual temperature of room 1
+    tp1: f64, // desired temperature of room 1
+    t2: f64,  // actual temperature of room 2
+    tp2: f64, // desired temperature of room 2
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Room {
-    t: FPData,  // actual room temperature
-    tp: FPData, // desired room temperature
-    h: FPData,  // relative roome humidity
+    t: f64,  // actual room temperature
+    tp: f64, // desired room temperature
+    h: f64,  // relative roome humidity
 }
 #[derive(Debug, Serialize, Deserialize)]
 struct Ambient {
-    t: FPData,   // temperature
-    h: FPData,   // humidity
-    uvi: FPData, //
-    wind: FPData,
+    t: f64, // temperature
+    h: f64, // humidity
+    uvi: f64,
+    clouds: f64,
+    wind: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Func {
+struct OtherRecord {
     state: f64,
     slept: f64,
     offset: f64,
+    uvi: f64,
+    clouds: f64,
+    wind: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -292,7 +294,7 @@ pub struct LogLine {
     res_par: [f64; 2],
     res_g: [f64; 7],
     res_q: [f64; 2],
-    fr: Func,
+    fr: OtherRecord,
 }
 
 #[derive(Debug)]
@@ -347,8 +349,9 @@ impl LogLine {
             r0: Ambient {
                 t: self.ar.ut0,
                 h: self.ar.h0,
-                uvi: self.ar.usun2,
-                wind: 0f64, // TODO: fill this with actual data
+                uvi: self.fr.uvi,
+                clouds: self.fr.clouds,
+                wind: self.fr.wind,
             },
             f: FuncDisp {
                 state: FuncState::try_from(self.fr.state as usize)
