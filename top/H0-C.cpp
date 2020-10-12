@@ -21,12 +21,16 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-
+    libdumbacModelClass::ExtU u;
+    arr_t<3> h;
+    arr_t<2> f012bu;
+    arr_t<6> other;
     std::ofstream logger{ "/var/log/e-curtain.bin", std::ios_base::app };
     constexpr const size_t log_entry{
             sizeof(std::chrono::system_clock::rep) +
-            (5 + 3 + 3 + 2 + 2 + 2 + 3 + 3) * sizeof(double) +
-            sizeof(libdumbacModelClass::ExtY)
+            (5 + 3 + 3 + 2 + 2 + 2 + 3) * sizeof(double) +
+            sizeof(libdumbacModelClass::ExtY) +
+            other.size() * sizeof(double)
     };
     constexpr const size_t log_align{ 64 }; // bytes
     constexpr const size_t log_padding{ (log_entry + 8 + log_align - 1) / log_align * log_align - log_entry };
@@ -77,10 +81,6 @@ int main(int argc, char *argv[]) {
 
     std::mutex mtx{};
     udp_server<13> i_udp_server{ PORT };
-    libdumbacModelClass::ExtU u;
-    arr_t<3> h;
-    arr_t<2> f012bu;
-    arr_t<5> other;
     synchronizer<0> s_udp{ "s_udp", 0s, [&]() {
         arr_t<13> v;
         i_udp_server >> v;
@@ -165,6 +165,7 @@ int main(int argc, char *argv[]) {
         logger.write(reinterpret_cast<const char *>(&clk), sizeof(clk));
         static_assert(sizeof(clk) == 8);
         logger.write(reinterpret_cast<const char *>(ar.data()), ar.size() * sizeof(double));
+        static_assert(sizeof(ar) == (5 + 3 + 3 + 2 + 2 + 2 + 3) * sizeof(double));
         logger.write(reinterpret_cast<const char *>(&res), sizeof(res));
         logger.write(reinterpret_cast<const char *>(fr.data()), fr.size() * sizeof(double));
         logger.write(log_pad.data(), log_padding);
