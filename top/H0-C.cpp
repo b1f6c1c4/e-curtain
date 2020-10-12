@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
     }() };
     std::cout << "Info: length of log entry is " << log_entry;
     std::cout << " / " << log_entry + log_padding << " bytes " << std::endl;
+    static_assert(log_entry + log_padding == 384);
 
 
     nlohmann::json j;
@@ -51,11 +52,11 @@ int main(int argc, char *argv[]) {
               "&exclude=" + "daily,hourly,minutely,alerts" +
               "&appid=" + api_key };
 
-    udp_client<7> i_udp_client{ "localhost", PORT };
+    udp_client<9> i_udp_client{ "localhost", PORT };
     synchronizer<0> s_t0{ "s_t0", 10min, [&]() {
         curl{ url } >> j;
 
-        arr_t<7> v;
+        arr_t<9> v;
         v[0] = 0; // tag
         v[1] = j["current"]["temp"].get<double>() - 273.15;
         v[2] = j["current"]["humidity"].get<double>();
@@ -67,6 +68,8 @@ int main(int argc, char *argv[]) {
         v[4] = (toff - dt) / 3600.0; // hours before sunset
         v[5] = j["current"]["uvi"].get<double>();
         v[6] = j["current"]["wind_speed"].get<double>() <= 5.5; // f012bu
+        v[7] = j["current"]["clouds"].get<double>();
+        v[8] = j["current"]["wind_speed"].get<double>();
 
         i_udp_client << v;
     } };
@@ -77,7 +80,7 @@ int main(int argc, char *argv[]) {
     libdumbacModelClass::ExtU u;
     arr_t<3> h;
     arr_t<2> f012bu;
-    arr_t<3> f;
+    arr_t<5> other;
     synchronizer<0> s_udp{ "s_udp", 0s, [&]() {
         arr_t<13> v;
         i_udp_server >> v;
@@ -88,8 +91,11 @@ int main(int argc, char *argv[]) {
                 h[0] = v[2];
                 u.sun[0] = v[3]; // ton
                 u.sun[1] = v[4]; // toff
-                u.sun[2] = v[5]; // uvi
+                u.sun[2] = v[5] * (120.0 - v[7]) / 120.0; // uvi ~ clouds
                 f012bu[0] = v[6];
+                other[3] = v[5]; // uvi
+                other[4] = v[7]; // clouds
+                other[5] = v[8]; // wind
                 break;
             case 1:
                 u.y[0] = v[1];
@@ -109,9 +115,9 @@ int main(int argc, char *argv[]) {
                 u.w0 = v[7];
                 u.w1 = v[8];
                 u.w2 = v[9];
-                f[0] = v[10];
-                f[1] = v[11];
-                f[2] = v[12];
+                other[0] = v[10];
+                other[1] = v[11];
+                other[2] = v[12];
                 break;
             default:
                 std::cout << "Warning: invalid udp package type" << std::endl;
@@ -150,13 +156,14 @@ int main(int argc, char *argv[]) {
                     u.w0,
                     u.w1,
                     u.w2,
-            }, f);
+            }, other);
         }();
 
         i_mpc.step();
 
         auto &res{ i_mpc.getExternalOutputs() };
         logger.write(reinterpret_cast<const char *>(&clk), sizeof(clk));
+        static_assert(sizeof(clk) == 8);
         logger.write(reinterpret_cast<const char *>(ar.data()), ar.size() * sizeof(double));
         logger.write(reinterpret_cast<const char *>(&res), sizeof(res));
         logger.write(reinterpret_cast<const char *>(fr.data()), fr.size() * sizeof(double));

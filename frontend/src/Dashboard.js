@@ -65,6 +65,7 @@ const Room = (props) => {
           ) : (
             <Box direction='row' gap='small'>
               <Text>{fmt(_.get(data, 'uvi'), { mantissa: 2 })}</Text>
+              <Text>{fmt(_.get(data, 'clouds'), { mantissa: 0, average: true })}%</Text>
               <Text>{fmt(_.get(data, 'wind'), { mantissa: 2 })}m/s</Text>
             </Box>
           )}
