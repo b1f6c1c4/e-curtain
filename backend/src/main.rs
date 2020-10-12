@@ -111,7 +111,7 @@ impl Seeker {
 
         // Create a watcher object, delivering debounced events.
         // The notification back-end is selected based on the platform.
-        let mut watcher = watcher(tx, Duration::from_secs(10)).unwrap();
+        let mut watcher = watcher(tx, Duration::from_secs(1)).unwrap();
         watcher.watch(&self.filename, RecursiveMode::NonRecursive).unwrap();
         loop {
             match rx.recv() {
