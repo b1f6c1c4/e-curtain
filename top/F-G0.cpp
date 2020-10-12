@@ -99,7 +99,7 @@ struct state_machine_t : public sink<4>, public source<13> {
         std::lock_guard l{ _mtx };
         auto td{ time_of_day() };
         auto ts{ std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now() - _slept).count() / 3600 };
+                std::chrono::system_clock::now() - _slept).count() / 60.0 };
         r[0] = 3;
         switch (_state) {
             case S_NOBODY:
@@ -246,21 +246,18 @@ int main(int argc, char *argv[]) {
     state_machine_t sm;
 
     udp_client<13> i_udp_client{ host, PORT };
-    arr_t<13> old_sp{};
     synchronizer<0> s_sp{ "s_sp", 0s, [&]() {
         i_gpio | sm;
+        sm | i_udp_client;
+    } };
+    arr_t<13> old_sp{};
+    synchronizer<0> s_spt{ "s_spt", 10s, [&]() {
+        sm << arr_t<4>{};
         arr_t<13> sp{};
         sm >> sp;
         if (sp != old_sp)
             std::cout << "Set point: " << sp << std::endl;
         old_sp = sp;
-        i_udp_client << sp;
-    } };
-    synchronizer<0> s_spt{ "s_spt", 10s, [&]() {
-        sm << arr_t<4>{};
-        arr_t<13> sp{};
-        sm >> sp;
-        std::cout << "Set point: " << sp << std::endl;
         i_udp_client << sp;
     } };
 
