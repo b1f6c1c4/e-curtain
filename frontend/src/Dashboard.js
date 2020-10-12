@@ -15,9 +15,11 @@ import { IconButton } from 'grommet-controls';
 import { Add, Radial, Subtract } from 'grommet-icons';
 import GaugeChart from 'react-gauge-chart';
 import dayjs from 'dayjs';
-import numeral from 'numeral';
+import numbro from 'numbro';
 
-const fmt = (v, f) => (v === undefined || isNaN(v)) ? '--' : numeral(v).format(f);
+numbro.setDefaults({ average: true });
+
+const fmt = (v, f) => (v === undefined || isNaN(v)) ? '--' : numbro(v).format(f);
 
 const Room = (props) => {
   const size = React.useContext(ResponsiveContext);
@@ -55,15 +57,15 @@ const Room = (props) => {
           animate={false}
         />
         <Box>
-          <Text weight='bold'>t<sub>{nid}</sub>: {fmt(t, '0.00')}&#8451;</Text>
+          <Text weight='bold'>t<sub>{nid}</sub>: {fmt(t, { mantissa: 2 })}&#8451;</Text>
         </Box>
         <Box flex='grow'>
           {nid !== '0' ? (
-            <Text>t<sub>p{nid}</sub>: {fmt(tp, '0.00')}&#8451;</Text>
+            <Text>t<sub>p{nid}</sub>: {fmt(tp, { mantissa: 2 })}&#8451;</Text>
           ) : (
             <Box direction='row' gap='small'>
-              <Text>{fmt(_.get(data, 'uvi'), '0.00')}</Text>
-              <Text>{fmt(_.get(data, 'wind'), '0.00')}m/s</Text>
+              <Text>{fmt(_.get(data, 'uvi'), { mantissa: 2 })}</Text>
+              <Text>{fmt(_.get(data, 'wind'), { mantissa: 2 })}m/s</Text>
             </Box>
           )}
         </Box>
@@ -78,7 +80,7 @@ const Room = (props) => {
           />
         )}
         <Box>
-          <Text weight='bold'>h<sub>{nid}</sub>: {fmt(_.get(data, 'h'), '0.00')}%</Text>
+          <Text weight='bold'>h<sub>{nid}</sub>: {fmt(_.get(data, 'h'), { mantissa: 2 })}%</Text>
         </Box>
       </CardBody>
     </Card>
@@ -160,7 +162,7 @@ const Chart = ({ data }) => {
 const Entry = ({ data, label, format }) => (
   <Box direction='row' margin='xxsmall' gap='xxsmall'>
     <Box width='2.5em' align='end'>{label}:</Box>
-    <Box width='2.5em' align='start'>{fmt(_.get(data, label), format || '0.00')}</Box>
+    <Box width='2.5em' align='start'>{fmt(_.get(data, label), format || { mantissa: 2 })}</Box>
   </Box>
 );
 
@@ -196,7 +198,7 @@ const Dashboard = ({ history, current, setOffset }) => {
   const state = _.get(current, 'f.state') || '(unknown)';
   let slept = _.get(current, 'f.slept') / 60;
   if (slept > 24) slept = 24; if (slept < 0) slept = NaN;
-  slept = `${fmt(Math.floor(slept), '00')}:${fmt((slept - Math.floor(slept)) * 60, '00')}`
+  slept = `${fmt(Math.floor(slept), { characteristic: 2 })}:${fmt((slept - Math.floor(slept)) * 60, { characteristic: 2 })}`
   const other = _.get(current, 'other');
   const currControl = (
     <Box width={isSmall ? '100%' : '260px'} direction='row' wrap={!isSmall} justify='center' margin={isSmall ? { top: '-2px' } : { right: 'small' }} gap='none'>
@@ -206,7 +208,7 @@ const Dashboard = ({ history, current, setOffset }) => {
           <Box align='center'>
             <Text weight='bold' color='dark' margin='xsmall' style={{ marginBottom: 0 }}>{state}</Text>
             <Text color='dark' margin='xxsmall'>{slept}</Text>
-            <Text weight='bold' color='warm' margin='xxsmall'>{fmt(_.get(current, 'f.offset'), '+0.00')}&#8451;</Text>
+            <Text weight='bold' color='warm' margin='xxsmall'>{fmt(_.get(current, 'f.offset'), { forceSign: true, mantissa: 2 })}&#8451;</Text>
           </Box>
         </CardBody>
         <CardFooter gap='none' direction='row' backgrund='light' justify='evenly'>
@@ -233,30 +235,30 @@ const Dashboard = ({ history, current, setOffset }) => {
       <Card width={isSmall ? '120px' : '100%'} height={{ max: isSmall ? '165px' : undefined }} background='light' margin='small' flex='grow'>
         <CardHeader pad='small' justify='center' background='dark'>F/C/H0 output</CardHeader>
         <CardBody direction={isSmall ? 'column' : 'row'} pad='small' wrap justify={isSmall ? 'start' : 'evenly'} overflow={isSmall ? 'scroll' : undefined}>
-          <Entry data={other} label='acm' format='+0' />
+          <Entry data={other} label='acm' format={{ forceSign: true }} />
           <Entry data={other} label='acp' />
           <Entry data={other} label='reg1' />
           <Entry data={other} label='reg2' />
-          <Entry data={other} label='fan' format='0' />
+          <Entry data={other} label='fan' format={{}} />
           <Entry data={other} label='win' />
           <Entry data={other} label='cur' />
-          <Entry data={other} label='w0' format='0.0' />
-          <Entry data={other} label='w1' format='0.0' />
-          <Entry data={other} label='w2' format='0.0' />
+          <Entry data={other} label='w0' format={{ mantissa: 1 }} />
+          <Entry data={other} label='w1' format={{ mantissa: 1 }} />
+          <Entry data={other} label='w2' format={{ mantissa: 1 }} />
           <Entry data={other} label='curbl' />
           <Entry data={other} label='curbu' />
           <Entry data={other} label='f012' />
           <Entry data={other} label='t0d' />
           <Entry data={other} label='f012bl' />
           <Entry data={other} label='f012bu' />
-          <Entry data={other} label='ac1' format='+0.00' />
-          <Entry data={other} label='ac2' format='+0.00' />
-          <Entry data={other} label='t1m0' format='+0.00' />
+          <Entry data={other} label='ac1' format={{ forceSign: true, mantissa: 2 }} />
+          <Entry data={other} label='ac2' format={{ forceSign: true, mantissa: 2 }} />
+          <Entry data={other} label='t1m0' format={{ forceSign: true, totalLength: 3 }} />
           <Entry data={other} label='Wsun' />
           <Entry data={other} label='qest' />
           <Entry data={other} label='cest' />
-          <Entry data={other} label='tsr' format='+0.0' />
-          <Entry data={other} label='tss' format='+0.0' />
+          <Entry data={other} label='tsr' format={{ forceSign: true, mantissa: 1 }} />
+          <Entry data={other} label='tss' format={{ forceSign: true, mantissa: 1 }} />
         </CardBody>
       </Card>
     </Box>
