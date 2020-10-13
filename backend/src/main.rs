@@ -170,7 +170,9 @@ impl Seeker {
             file.seek(io::SeekFrom::Start(*pos)).unwrap();
             let log_line = read_to_line(&mut file);
             assert_eq!(log_line.clk, *t);
-            res.push(log_line);
+            if !log_line.fr.state.is_nan() {
+                res.push(log_line);
+            }
         }
         res
     }
