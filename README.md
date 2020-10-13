@@ -40,15 +40,15 @@
 
 ## Layout
 
-- `controller-0`: The central controller, running `F-G0`
+- `HOST0`: The central controller, running `F-G0`
     - Servo x4
     - RF receiver
-- `controller-1`: The bedroom controller, running `H1-G1`
+- `HOST1`: The bedroom controller, running `H1-G1`
     - Temperature sensor
     - Continuous rotation servo
     - Stepper with controller
     - Relay
-- `controller-2`: The living room controller, running `H2` and `H0-C`
+- `HOST2`: The living room controller, running `H2` and `H0-C`
     - Temperature sensor
 
 ## Hardware setup
@@ -56,6 +56,8 @@
 Read the source code and you will figure out.
 
 ## Software setup
+
+You need `cmake`, `make`, `ssh`, `bash`, `node/npm`, `rustc/cargo`
 
 ### Prepare cross-compile toolchain
 
@@ -73,6 +75,13 @@ Read the source code and you will figure out.
     cd ct-ng
     ct-ng build.128 # Depends on how many cores you have
     ```
+
+### Prepare toolchain for rust
+
+```bash
+sudo systemctl start docker
+cargo install cross
+```
 
 ### MATLAB Simulink code generation
 
@@ -100,6 +109,8 @@ make HOST0=192.168.x.x HOST1=192.168.x.x HOST2=192.168.x.x deploy
 You need to put weather API key into `$HOST2:/etc/e-curtain/weather.json`.
 
 Data log are written to `$HOST2:/var/log/e-curtain.bin`.
+
+We are also utilizing `$HOST2:/var/lib/e-curtain/` for persistent storage.
 
 ## License
 
