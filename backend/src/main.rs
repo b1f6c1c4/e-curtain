@@ -72,6 +72,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .service(history)
             .service(current)
+            .service(offset)
             .service(
                 fs::Files::new(
                     "/",
