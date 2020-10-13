@@ -123,12 +123,12 @@ struct state_machine_t : public sink<4>, public source<13> {
                     r[1] = 26.0, r[2] = 25.5; // tp[12]
                     r[3] = 1.0, r[4] = 1.0; // f012b[lu]
                     r[5] = 0.0, r[6] = 0.0; // curb[lu]
-                    r[7] = 1.0, r[8] = 0.3, r[9] = 2.7; // w[012]
+                    r[7] = 1.0, r[8] = 0.5, r[9] = 2.5; // w[012]
                 } else {
                     r[1] = 26.0, r[2] = 26.0; // tp[12]
                     r[3] = 0.0, r[4] = 0.2; // f012b[lu]
                     r[5] = 0.0, r[6] = 0.0; // curb[lu]
-                    r[7] = 1.0, r[8] = 0.3, r[9] = 2.7; // w[012]
+                    r[7] = 1.0, r[8] = 0.5, r[9] = 2.5; // w[012]
                 }
                 break;
             case S_SNAP:
@@ -143,11 +143,11 @@ struct state_machine_t : public sink<4>, public source<13> {
                 if (ts < 450)
                     r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                 else
-                    r[3] = 0.0, r[4] = 0.2; // f012b[lu]
-                if (ts < 450)
+                    r[3] = 0.2, r[4] = 0.2; // f012b[lu]
+                if (ts < 480)
                     r[5] = r[6] = 0; // curb[lu]
                 else
-                    r[5] = r[6] = std::min(1.0, (ts - 450.0) / 20.0); // curb[lu]
+                    r[5] = r[6] = 1; // curb[lu]
                 if (_state == S_SLEEP) {
                     r[2] = r[1] - 0.5; // tp2
                     r[7] = 1.0, r[8] = 3.0, r[9] = 0.0; // w[012]
