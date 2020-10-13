@@ -3,7 +3,7 @@
 Ts = 10;
 t1m0s = [-20 40];
 Wsuns = [0 1600];
-Gds = drss(4,2,8,length(t1m0s),length(Wsuns));
+Gds = drss(60,2,8,length(t1m0s),length(Wsuns));
 for i = 1:length(t1m0s)
     for j = 1:length(Wsuns)
         Gds(:,:,i,j) = makeACMdl(t1m0s(i), Wsuns(j), Ts);
@@ -12,9 +12,9 @@ end
 [t1m0sg,Wsunsg] = ndgrid(t1m0s, Wsuns);
 Gds.SamplingGrid = struct('t1m0', t1m0sg, 'Wsun', Wsunsg);
 
-Gdsam = mpc(makeACMdl(10, 60, Ts), Ts, 25, 2, struct(...
-    'ManipulatedVariables', [0.1 0.1 0.002 0], ...
-    'ManipulatedVariablesRate', [0 0 0.02 0.01]));
+Gdsam = mpc(makeACMdl(0, 0, Ts), Ts, 25, 2, struct(...
+    'ManipulatedVariables', [0.3 0.2 0.01 0], ...
+    'ManipulatedVariablesRate', [0 0 0.15 0.11]));
 conE = [
     1 1 0 0
     -1 -1 0 0

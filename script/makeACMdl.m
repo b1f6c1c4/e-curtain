@@ -16,9 +16,9 @@ B3 = [
     ];
 % [W1 W2 W01 W012 Wx] -> [W1+W2+W01+W012 W2-W1-W01 Wx]
 B2 = [
-    1 1 1 1 0
-    -1 1 -1 0 0
-    0 0 0 0 1
+    +1 +1 +1 +1 0
+    -1 +1 -1 0  0
+    0  0  0  0  +1
     ];
 % [ac1 ac2 f012 cur t0d w0 w1 w2] -> [W1 W2 W01 W012 Wx]
 B1 = [
@@ -71,10 +71,10 @@ D = D0; % *X
 G = ss(A, B, C, D, ...
     'InputName', {'ac1', 'ac2', 'f012', 'cur', 't0d', 'w0', 'w1', 'w2'}, ...
     'OutputName', {'t1', 't2'}, ...
-    'InputDelay', [60, 60, 0, 0, 0, 0, 0, 0]);
+    'InputDelay', [180, 180, 0, 0, 0, 0, 0, 0]);
 
 Gd = c2d(G, Ts);
-Gd = absorbDelay(Gd);
 Gd = setmpcsignals(Gd, 'MV', [1 2 3 4], 'MD', [5 6 7 8]);
+Gd = absorbDelay(Gd);
 
 end
