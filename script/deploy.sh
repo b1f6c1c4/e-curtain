@@ -2,12 +2,13 @@
 
 set -eux
 
-BINARY="$1"
+DIR="$1"
+BINARY="${DIR##*/}"
 shift
 HOST="$1"
 shift
 
-scp "$DIR/$BINARY" "pi@$HOST:/tmp"
+scp "$DIR" "pi@$HOST:/tmp"
 
 # shellcheck disable=SC2087
 ssh "pi@$HOST" <<EOF

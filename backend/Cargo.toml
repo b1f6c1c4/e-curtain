@@ -1,0 +1,26 @@
+[package]
+name = "e-curtain-backend"
+version = "0.1.0"
+authors = ["Hao Shi <shisoftgenius@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "3"
+actix-files = "0.4.0"
+actix-service = "1.0.0"
+futures = "0.3.1"
+env_logger = "0.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+json = "0.12"
+crossbeam-channel = "0.4.0"
+notify = "4.0.12"
+lazy_static = "*"
+parking_lot = "*"
+tokio = { version = "0.2", features = ["full"] }
+strum = "0.19"
+strum_macros = "0.19"
+num_enum = "0.5"
+log = "*"
