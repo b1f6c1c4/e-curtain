@@ -134,14 +134,17 @@ const Chart = ({ data }) => {
             dash: true,
           }]}
           axis={{
-            x: { property: 'dt' },
+            x: {
+              property: 'dt',
+              granularity: 'coarse', // TODO: https://github.com/grommet/grommet/issues/4602
+            },
             y: {
               property: 't1',
-              ganularity: 'fine',
+              granularity: 'fine',
             },
           }}
           guide={{
-            x: { granularity: 'fine' },
+            x: { granularity: 'medium' },
             y: { granularity: 'fine' },
           }}
           detail

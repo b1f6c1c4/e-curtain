@@ -41,9 +41,14 @@ const App = () => {
   }, current === undefined ? 200 : 1000);
   useInterval(async () => {
     try {
-      const res = await ky.get(url + '/history').json();
+      const res = await ky.get(url + '/history', {
+        searchParams: {
+          since: +new Date() - 60*60*1000,
+          until: +new Date(),
+        },
+      }).json();
       res.forEach((v) => {
-        v.dt = dayjs(v.dt * 1000).format('YYYY-MM-DDTHH:mm:ss');
+        v.dt = dayjs(v.dt).format('YYYY-MM-DDTHH:mm:ss');
       });
       setHistory((res.length > 2 && res) || null);
     } catch (e) {
