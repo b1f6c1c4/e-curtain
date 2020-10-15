@@ -15,9 +15,11 @@ const arr_t<4> g_ABCD{ 1.0, 1.0, 1.0, 1.0 };
 const arr_t<4> g_ABC{ 1.0, 1.0, 1.0, 0.0 };
 const arr_t<4> g_AB{ 1.0, 1.0, 0.0, 0.0 };
 const arr_t<4> g_CD{ 0.0, 0.0, 1.0, 1.0 };
+const arr_t<4> g_AD{ 1.0, 0.0, 0.0, 1.0 };
 const arr_t<4> g_A{ 1.0, 0.0, 0.0, 0.0 };
 const arr_t<4> g_B{ 0.0, 1.0, 0.0, 0.0 };
 const arr_t<4> g_C{ 0.0, 0.0, 1.0, 0.0 };
+const arr_t<4> g_D{ 0.0, 0.0, 0.0, 1.0 };
 
 auto time_of_day() {
     auto clk{ std::chrono::system_clock::now() };
@@ -74,16 +76,17 @@ struct state_machine_t : public sink<4>, public source<13> {
                     _state = S_SNAP;
                 break;
             case S_SLEEP:
-                if (r == g_A)
-                    _state = S_NORMAL;
-                else if (r == g_C)
-                    _state = S_RSNAP;
-                break;
             case S_RSNAP:
                 if (r == g_A)
                     _state = S_NORMAL;
                 else if (r == g_B)
                     _state = S_SLEEP;
+                else if (r == g_C)
+                    _state = S_RSNAP;
+                else if (r == g_D)
+                    _slept += 30min;
+                else if (r == g_AD)
+                    _slept -= 30min;
                 break;
         }
         arr_t<3> v{};
@@ -140,10 +143,10 @@ struct state_machine_t : public sink<4>, public source<13> {
             case S_SLEEP:
             case S_RSNAP:
                 r[1] = g_sleep(ts);
-                if (ts < 450)
+                if (ts < 480)
                     r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                 else
-                    r[3] = 0.2, r[4] = 0.2; // f012b[lu]
+                    r[3] = 0.1, r[4] = 0.1; // f012b[lu]
                 if (ts < 480)
                     r[5] = r[6] = 0; // curb[lu]
                 else
