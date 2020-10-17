@@ -1,5 +1,7 @@
 #include "common.hpp"
 #include <mutex>
+#include <condition_variable>
+#include <functional>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include "net/udp_server.hpp"
@@ -80,6 +82,8 @@ int main(int argc, char *argv[]) {
 
 
     std::mutex mtx{};
+    std::condition_variable cv{};
+    std::array<bool, 4> is_ready{ false, false, false, false };
     udp_server<14> i_udp_server{ PORT };
     synchronizer<0> s_udp{ "s_udp", 0s, [&]() {
         arr_t<14> v;
@@ -122,8 +126,20 @@ int main(int argc, char *argv[]) {
                 break;
             default:
                 std::cout << "Warning: invalid udp package type" << std::endl;
+                return;
         }
+        is_ready[static_cast<int>(v[0])] = true;
+        cv.notify_all();
     } };
+
+    {
+        std::cout << "Info: waiting for all inputs to be ready" << std::endl;
+        std::unique_lock l{ mtx };
+        while (std::any_of(is_ready.begin(), is_ready.end(), std::logical_not<bool>{})) {
+            cv.wait(l);
+        }
+        std::cout << "Info: all inputs ready" << std::endl;
+    }
 
     udp_client<4> i_udp_client0{ host0, PORT };
     udp_client<3> i_udp_client1{ host1, PORT };
