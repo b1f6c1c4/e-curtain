@@ -220,7 +220,6 @@ int main(int argc, char *argv[]) {
     overlay<4> i_overlay{};
 
     auto write{ [&](double acp, double acm, double reg1, double reg2) {
-        std::cout << "Write: " << acp << " " << acm << " " << reg1 << " " << reg2 << std::endl;
         auto m{ 60.0 };
         auto p{ 180.0 * acp };
         switch (static_cast<int>(acm)) {
@@ -256,14 +255,10 @@ int main(int argc, char *argv[]) {
         i_gpio | sm;
         sm | i_udp_client;
     } };
-    arr_t<14> old_sp{};
     synchronizer<0> s_spt{ "s_spt", 10s, [&]() {
         sm << arr_t<4>{};
         arr_t<14> sp{};
         sm >> sp;
-        if (sp != old_sp)
-            std::cout << "Set point: " << sp << std::endl;
-        old_sp = sp;
         i_udp_client << sp;
     } };
 
