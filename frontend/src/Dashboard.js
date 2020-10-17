@@ -170,7 +170,7 @@ const Entry = ({ data, label, format }) => (
   </Box>
 );
 
-const Dashboard = ({ history, current, setOffset }) => {
+const Dashboard = ({ history, current, setOffset2 }) => {
   const size = React.useContext(ResponsiveContext);
   const isSmall = size === 'small' || size === 'xsmall';
   const currSensor = (
@@ -212,7 +212,10 @@ const Dashboard = ({ history, current, setOffset }) => {
           <Box align='center'>
             <Text weight='bold' color='dark' margin='xsmall' style={{ marginBottom: 0 }}>{state}</Text>
             <Text color='dark' margin='xxsmall'>{slept}</Text>
-            <Text weight='bold' color='warm' margin='xxsmall'>{fmt(_.get(current, 'f.offset'), { forceSign: true, mantissa: 2 })}&#8451;</Text>
+            <Box direction='horizontal' margin='xxsmall' gap='small' justity='evenly'>
+              <Text weight='bold' color='warm'>{fmt(_.get(current, 'f.offset'), { forceSign: true, mantissa: 2 })}&#8451;</Text>
+              <Text weight='bold' color='room2'>{fmt(_.get(current, 'f.offset2'), { forceSign: true, mantissa: 2 })}&#8451;</Text>
+            </Box>
           </Box>
         </CardBody>
         <CardFooter gap='none' direction='row' backgrund='light' justify='evenly'>
@@ -220,19 +223,19 @@ const Dashboard = ({ history, current, setOffset }) => {
             margin={isSmall && { top: '-7px', bottom: '-7px', left: '-5px', right: '-5px' }}
             icon={<Subtract color='cold' />}
             hoverIndicator
-            onClick={() => { setOffset && setOffset(-1); }}
+            onClick={() => { setOffset2 && setOffset2(-1); }}
           />
           <IconButton
             margin={isSmall && { top: '-7px', bottom: '-7px', left: '-5px', right: '-5px' }}
             icon={<Radial color='black' />}
             hoverIndicator
-            onClick={() => { setOffset && setOffset(0); }}
+            onClick={() => { setOffset2 && setOffset2(0); }}
           />
           <IconButton
             margin={isSmall && { top: '-7px', bottom: '-7px', left: '-5px', right: '-5px' }}
             icon={<Add color='warm' />}
             hoverIndicator
-            onClick={() => { setOffset && setOffset(+1); }}
+            onClick={() => { setOffset2 && setOffset2(+1); }}
           />
         </CardFooter>
       </Card>

@@ -57,9 +57,9 @@ const App = () => {
     }
   }, history === undefined ? 200 : 1000);
 
-  const setOffset = async (v) => {
+  const setOffset2 = async (v) => {
     try {
-      await ky.post(url + '/offset', { json: { cmd: v } }).json();
+      await ky.post(url + '/offset2', { json: { cmd: v } }).json();
     } catch (e) {
       console.error(e);
     }
@@ -70,7 +70,7 @@ const App = () => {
       <Dashboard
         current={current}
         history={history}
-        setOffset={setOffset}
+        setOffset2={setOffset2}
       />
     </Grommet>
   );

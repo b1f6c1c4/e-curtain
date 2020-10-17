@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     libdumbacModelClass::ExtU u;
     arr_t<3> h;
     arr_t<2> f012bu;
-    arr_t<6> other;
+    arr_t<7> other;
     std::ofstream logger{ "/var/log/e-curtain.bin", std::ios_base::app };
     constexpr const size_t log_entry{
             sizeof(std::chrono::system_clock::rep) +
@@ -80,9 +80,9 @@ int main(int argc, char *argv[]) {
 
 
     std::mutex mtx{};
-    udp_server<13> i_udp_server{ PORT };
+    udp_server<14> i_udp_server{ PORT };
     synchronizer<0> s_udp{ "s_udp", 0s, [&]() {
-        arr_t<13> v;
+        arr_t<14> v;
         i_udp_server >> v;
         std::lock_guard l{ mtx };
         switch (static_cast<int>(v[0])) {
@@ -118,6 +118,7 @@ int main(int argc, char *argv[]) {
                 other[0] = v[10];
                 other[1] = v[11];
                 other[2] = v[12];
+                other[6] = v[13];
                 break;
             default:
                 std::cout << "Warning: invalid udp package type" << std::endl;

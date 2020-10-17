@@ -28,9 +28,9 @@ auto time_of_day() {
     return tm.tm_hour + (tm.tm_min + tm.tm_sec / 60.0) / 60.0;
 }
 
-struct state_machine_t : public sink<4>, public source<13> {
+struct state_machine_t : public sink<4>, public source<14> {
     state_machine_t() {
-        arr_t<3> v{};
+        arr_t<4> v{};
         _persistent >> v;
         if (!IS_INV(v[0])) {
             _state = static_cast<state_t>(v[0]);
@@ -40,6 +40,7 @@ struct state_machine_t : public sink<4>, public source<13> {
             std::cout << "Info: recovered state " << _state;
             std::cout << " offset " << _offset;
             std::cout << " slept " << _slept.time_since_epoch().count();
+            std::cout << " offset2 " << _offset2;
             std::cout << std::endl;
         }
     }
@@ -89,16 +90,17 @@ struct state_machine_t : public sink<4>, public source<13> {
                     _slept -= 30min;
                 break;
         }
-        arr_t<3> v{};
+        arr_t<4> v{};
         v[0] = static_cast<double>(_state);
         v[1] = _offset;
         auto sl{ _slept.time_since_epoch().count() };
         v[2] = *reinterpret_cast<const double *>(&sl);
+        v[3] = _offset2;
         _persistent << v;
         return *this;
     }
 
-    source<13> &operator>>(arr_t<13> &r) override {
+    source<14> &operator>>(arr_t<14> &r) override {
         std::lock_guard l{ _mtx };
         auto td{ time_of_day() };
         auto ts{ std::chrono::duration_cast<std::chrono::seconds>(
@@ -160,21 +162,22 @@ struct state_machine_t : public sink<4>, public source<13> {
                 }
                 break;
         }
-        r[1] += _offset, r[2] += _offset;
+        r[1] += _offset, r[2] += _offset + _offset2;
         r[10] = static_cast<double>(_state);
         r[11] = ts;
         r[12] = _offset;
+        r[13] = _offset2;
         return *this;
     }
 
-    void offset(double d) {
+    void offset2(double d) {
         std::lock_guard l{ _mtx };
         if (d == +1)
-            _offset += 0.25;
+            _offset2 += 0.25;
         else if (d == -1)
-            _offset -= 0.25;
+            _offset2 -= 0.25;
         else
-            _offset = 0.0;
+            _offset2 = 0.0;
     }
 
 private:
@@ -186,9 +189,9 @@ private:
         S_SLEEP = 3,
         S_RSNAP = 4,
     } _state{ S_NORMAL };
-    double _offset{ 0.0 };
+    double _offset{ 0.0 }, _offset2{ 0.0 };
     std::chrono::system_clock::time_point _slept;
-    persistent<3> _persistent{ "F-G0.bin" };
+    persistent<4> _persistent{ "F-G0.bin" };
 };
 
 int main(int argc, char *argv[]) {
@@ -248,15 +251,15 @@ int main(int argc, char *argv[]) {
 
     state_machine_t sm;
 
-    udp_client<13> i_udp_client{ host, PORT };
+    udp_client<14> i_udp_client{ host, PORT };
     synchronizer<0> s_sp{ "s_sp", 0s, [&]() {
         i_gpio | sm;
         sm | i_udp_client;
     } };
-    arr_t<13> old_sp{};
+    arr_t<14> old_sp{};
     synchronizer<0> s_spt{ "s_spt", 10s, [&]() {
         sm << arr_t<4>{};
-        arr_t<13> sp{};
+        arr_t<14> sp{};
         sm >> sp;
         if (sp != old_sp)
             std::cout << "Set point: " << sp << std::endl;
@@ -271,7 +274,7 @@ int main(int argc, char *argv[]) {
         arr_t<4> v;
         i_udp_server >> v;
         if (IS_INV(v[0])) {
-            sm.offset(v[1]);
+            sm.offset2(v[1]);
         } else {
             i_pwm << arr_t<1>{ v[1] }; // acp
             s_recv << arr_t<3>{ v[0], v[2], v[3] }; // acm reg1 reg2

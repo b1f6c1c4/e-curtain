@@ -34,8 +34,8 @@ lazy_static! {
     pub static ref UDP_ADDR: String = format!("{}:33706", env::args().nth(2).unwrap());
 }
 
-#[post("/offset")]
-async fn offset(cmd: web::Json<OffsetCmd>) -> Result<HttpResponse, Error> {
+#[post("/offset2")]
+async fn offset2(cmd: web::Json<OffsetCmd>) -> Result<HttpResponse, Error> {
     let mut socket = UdpSocket::bind("0.0.0.0:0").await?;
     let nan = std::f64::NAN;
     let v = cmd.cmd;
@@ -72,7 +72,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .service(history)
             .service(current)
-            .service(offset)
+            .service(offset2)
             .service(
                 fs::Files::new(
                     "/",
@@ -228,6 +228,7 @@ struct OtherRecord {
     uvi: f64,
     clouds: f64,
     wind: f64,
+    offset2: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -235,6 +236,7 @@ struct FuncDisp {
     state: String,
     slept: f64,
     offset: f64,
+    offset2: f64,
 }
 
 #[derive(Eq, PartialEq, TryFromPrimitive)]
@@ -361,6 +363,7 @@ impl LogLine {
                     .unwrap()
                     .to_string(),
                 offset: self.fr.offset,
+                offset2: self.fr.offset2,
                 slept: self.fr.slept,
             },
             other: Other {
