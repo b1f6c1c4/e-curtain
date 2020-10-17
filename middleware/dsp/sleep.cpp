@@ -60,7 +60,7 @@ double g_sleep(double x)
     double slopes[7];
     double del[6];
     int low_ip1;
-    static const signed char iv1[7] = { 28, 28, 27, 26, 22, 26, 26 };
+    static const signed char iv1[7] = { 28, 28, 27, 26, 23, 26, 26 };
 
     int hs;
     int hs3;
