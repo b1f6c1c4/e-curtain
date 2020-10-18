@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "params.hpp"
 #include <mutex>
 #include "net/udp_client.hpp"
 #include "net/udp_server.hpp"
@@ -28,19 +29,20 @@ auto time_of_day() {
     return tm.tm_hour + (tm.tm_min + tm.tm_sec / 60.0) / 60.0;
 }
 
-struct state_machine_t : public sink<4>, public source<14> {
+struct state_machine_t : public sink<4>, public source<sp_size> {
     state_machine_t() {
         arr_t<4> v{};
         _persistent >> v;
         if (!IS_INV(v[0])) {
             _state = static_cast<state_t>(v[0]);
             _offset = v[1];
+            _offset2 = v[2];
             _slept = std::chrono::system_clock::time_point{ std::chrono::system_clock::duration{
-                    *reinterpret_cast<const std::chrono::system_clock::rep *>(&v[2]) } };
+                    *reinterpret_cast<const std::chrono::system_clock::rep *>(&v[3]) } };
             std::cout << "Info: recovered state " << _state;
             std::cout << " offset " << _offset;
-            std::cout << " slept " << _slept.time_since_epoch().count();
             std::cout << " offset2 " << _offset2;
+            std::cout << " slept " << _slept.time_since_epoch().count();
             std::cout << std::endl;
         }
     }
@@ -93,14 +95,14 @@ struct state_machine_t : public sink<4>, public source<14> {
         arr_t<4> v{};
         v[0] = static_cast<double>(_state);
         v[1] = _offset;
+        v[2] = _offset2;
         auto sl{ _slept.time_since_epoch().count() };
-        v[2] = *reinterpret_cast<const double *>(&sl);
-        v[3] = _offset2;
+        v[3] = *reinterpret_cast<const double *>(&sl);
         _persistent << v;
         return *this;
     }
 
-    source<14> &operator>>(arr_t<14> &r) override {
+    source<sp_size> &operator>>(arr_t<sp_size> &r) override {
         std::lock_guard l{ _mtx };
         auto td{ time_of_day() };
         auto ts{ std::chrono::duration_cast<std::chrono::seconds>(
@@ -163,6 +165,24 @@ struct state_machine_t : public sink<4>, public source<14> {
                 break;
         }
         r[1] += _offset, r[2] += _offset + _offset2;
+        switch (_state) {
+            case S_SLEEP:
+            case S_RSNAP:
+                for (size_t i{ 1 }; i < prediction_horizon; i++) {
+                    auto v{ g_sleep(ts + static_cast<double>(i) * 10 / 60) + _offset };
+                    auto ptr{ reinterpret_cast<float *>(&r[13 + i]) };
+                    ptr[0] = static_cast<float>(v);
+                    ptr[1] = static_cast<float>(r[2] - r[1] + v);
+                }
+                break;
+            default:
+                for (size_t i{ 1 }; i < prediction_horizon; i++) {
+                    auto ptr{ reinterpret_cast<float *>(&r[13 + i]) };
+                    ptr[0] = r[1];
+                    ptr[1] = r[2];
+                }
+                break;
+        }
         r[10] = static_cast<double>(_state);
         r[11] = ts;
         r[12] = _offset;
@@ -250,14 +270,14 @@ int main(int argc, char *argv[]) {
 
     state_machine_t sm;
 
-    udp_client<14> i_udp_client{ host, PORT };
+    udp_client<sp_size> i_udp_client{ host, PORT };
     synchronizer<0> s_sp{ "s_sp", 0s, [&]() {
         i_gpio | sm;
         sm | i_udp_client;
     } };
     synchronizer<0> s_spt{ "s_spt", 10s, [&]() {
         sm << arr_t<4>{};
-        arr_t<14> sp{};
+        arr_t<sp_size> sp{};
         sm >> sp;
         i_udp_client << sp;
     } };

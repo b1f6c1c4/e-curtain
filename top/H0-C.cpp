@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "params.hpp"
 #include <mutex>
 #include <condition_variable>
 #include <functional>
@@ -23,7 +24,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    libdumbacModelClass::ExtU u;
+    dumbac::model::ExtU u;
     arr_t<3> h;
     arr_t<2> f012bu;
     arr_t<7> other;
@@ -31,7 +32,7 @@ int main(int argc, char *argv[]) {
     constexpr const size_t log_entry{
             sizeof(std::chrono::system_clock::rep) +
             (5 + 3 + 3 + 2 + 2 + 2 + 3) * sizeof(double) +
-            sizeof(libdumbacModelClass::ExtY) +
+            sizeof(dumbac::model::ExtY) +
             other.size() * sizeof(double)
     };
     constexpr const size_t log_align{ 64 }; // bytes
@@ -84,9 +85,9 @@ int main(int argc, char *argv[]) {
     std::mutex mtx{};
     std::condition_variable cv{};
     std::array<bool, 4> is_ready{ false, false, false, false };
-    udp_server<14> i_udp_server{ PORT };
+    udp_server<sp_size> i_udp_server{ PORT };
     synchronizer<0> s_udp{ "s_udp", 0s, [&]() {
-        arr_t<14> v;
+        arr_t<sp_size> v;
         i_udp_server >> v;
         std::lock_guard l{ mtx };
         switch (static_cast<int>(v[0])) {
@@ -110,8 +111,8 @@ int main(int argc, char *argv[]) {
                 h[2] = v[2];
                 break;
             case 3:
-                u.tp[0] = v[1];
-                u.tp[1] = v[2];
+                u.tp1[0] = v[1];
+                u.tp2[0] = v[2];
                 u.f012b[0] = v[3];
                 f012bu[1] = v[4];
                 u.curb[0] = v[5];
@@ -123,6 +124,11 @@ int main(int argc, char *argv[]) {
                 other[1] = v[11];
                 other[2] = v[12];
                 other[6] = v[13];
+                for (size_t i{ 1 }; i < prediction_horizon; i++) {
+                    auto ptr{ reinterpret_cast<const float *>(&v[13 + i]) };
+                    u.tp1[i] = static_cast<double>(ptr[0]);
+                    u.tp2[i] = static_cast<double>(ptr[1]);
+                }
                 break;
             default:
                 std::cout << "Warning: invalid udp package type" << std::endl;
@@ -144,7 +150,7 @@ int main(int argc, char *argv[]) {
     udp_client<4> i_udp_client0{ host0, PORT };
     udp_client<3> i_udp_client1{ host1, PORT };
 
-    libdumbacModelClass i_mpc;
+    dumbac::model i_mpc;
     i_mpc.initialize();
     synchronizer<0> s_mpc{ "s_mpc", 10s, [&]() {
         auto clk{ std::chrono::system_clock::now().time_since_epoch().count() };
@@ -156,8 +162,8 @@ int main(int argc, char *argv[]) {
                     u.t0,
                     u.y[0],
                     u.y[1],
-                    u.tp[0],
-                    u.tp[1],
+                    u.tp1[0],
+                    u.tp2[0],
                     h[0],
                     h[1],
                     h[2],
