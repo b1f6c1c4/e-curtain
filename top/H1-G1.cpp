@@ -5,6 +5,7 @@
 #include <cstring>
 #include <mutex>
 #include <condition_variable>
+#include "io/ir.hpp"
 #include "io/si7021.hpp"
 #include "dsp/persistent.hpp"
 #include "dsp/filter.hpp"
@@ -86,35 +87,39 @@ int main(int argc, char *argv[]) {
 
     std::mutex mtx;
     std::condition_variable cv;
-    udp_server<3> i_udp_server{ PORT };
+    udp_server<4> i_udp_server{ PORT };
 
-    synchronizer<3> s_udp{ "s_udp", 0s, };
-    synchronizer<3> s_gpio{ "s_gpio", 0s, true };
+    synchronizer<4> s_udp{ "s_udp", 0s, };
+    synchronizer<4> s_gpio{ "s_gpio", 0s, true };
+    ir i_ir{ "/dev/lirc0" };
 
     {
-        arr_t<3> sv{ 0.0, 0.0, 0.0 };
+        arr_t<4> sv{ 0.0, 0.0, 0.0, 0.0 };
         arr_t<2> v{};
         _persistent >> v;
         if (!IS_INV(v[0])) {
             sv[0] = v[0];
             sv[1] = v[1];
         }
+        sv[3] = 0.0;
         std::cout << "Info: recovered cur " << sv[0];
         std::cout << " win " << sv[1];
+        std::cout << " heat " << sv[3];
         std::cout << std::endl;
         s_udp << sv;
         s_gpio << sv;
     }
 
     s_udp.set_callback([&]() {
-        arr_t<3> v;
+        arr_t<4> v;
         i_udp_server >> v;
         std::lock_guard l{ mtx };
         if (IS_INV(v[2])) { // calibration
-            arr_t<3> prev;
+            arr_t<4> prev;
             s_gpio >> prev;
             prev[0] = v[0];
             prev[1] = v[1];
+            prev[3] = v[3];
             std::cout << "Calibration: " << prev << std::endl;
             s_gpio << prev;
         } else {
@@ -124,7 +129,7 @@ int main(int argc, char *argv[]) {
     });
 
     s_gpio.set_callback([&]() {
-        arr_t<3> prev, next;
+        arr_t<4> prev, next;
         s_udp >> next;
         s_gpio >> prev;
 
@@ -147,6 +152,10 @@ int main(int argc, char *argv[]) {
         else if (next[1] > 1)
             next[1] = 1;
 
+        if (prev[3] != next[3]) {
+            i_ir << arr_t<12>{ 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
+            std::this_thread::sleep_for(0.2s);
+        }
         write(next[0] - std::max(prev[0], 0.0), std::max(next[1], 0.0) - std::max(prev[1], 0.0), next[2]);
         std::this_thread::sleep_for(1s);
         {
