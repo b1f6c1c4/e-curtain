@@ -24,7 +24,6 @@ struct persistent : public sink_source<N> {
     }
 
     sink<N> &operator<<(const arr_t<N> &r) {
-        std::cout << r << std::endl;
         if (_f.is_open()) {
             std::lock_guard l{ _mtx };
             _f.seekp(std::ios::beg);

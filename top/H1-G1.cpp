@@ -152,9 +152,21 @@ int main(int argc, char *argv[]) {
         else if (next[1] > 1)
             next[1] = 1;
 
-        if (prev[3] != next[3]) {
-            i_ir << arr_t<12>{ 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
-            std::this_thread::sleep_for(0.2s);
+        auto p = static_cast<int>(prev[3]);
+        auto n = static_cast<int>(next[3]);
+        if (!(0 <= n && n <= 3))
+            std::cout << "Invalid heat: " << next[3] << std::endl;
+        else if (p != n) {
+            if (p == 0 || n == 0) {
+                i_ir << arr_t<12>{ 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
+                std::this_thread::sleep_for(0.8s);
+                p = 3;
+            }
+            if (n != 0)
+                for (; n != p; p = (p + 1) % 3 + 1) {
+                    i_ir << arr_t<12>{ 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 };
+                    std::this_thread::sleep_for(0.5s);
+                }
         }
         write(next[0] - std::max(prev[0], 0.0), std::max(next[1], 0.0) - std::max(prev[1], 0.0), next[2]);
         std::this_thread::sleep_for(1s);
