@@ -20,13 +20,13 @@ B2 = [
     -1 +1 -1 0  0
     0  0  0  0  +1
     ];
-% [ac1 ac2 f012 cur t0d w0 w1 w2] -> [W1 W2 W01 W012 Wx]
+% [heat ac1 ac2 f012 cur t0d w0 w1 w2] -> [W1 W2 W01 W012 Wx]
 B1 = [
-    2500 0    0          0          0   0    200 0
-    0    2500 0          0          0   1100 0 300
-    0    0  -350*t1m0    Wsun-50    0   0    0 0
-    0    0    0          0          155 0    0 0
-    0    0  -140*t1m0    0          0   0    0 0
+    666  2500 0    0          0          0   0    200 0
+    0    0    2500 0          0          0   1100 0 300
+    0    0    0  -350*t1m0    Wsun-50    0   0    0 0
+    0    0    0    0          0          155 0    0 0
+    500  0    0  -140*t1m0    0          0   0    0 0
     ];
 % [ts td] -> [W1 W2 W01 W012 Wx]
 BA = [
@@ -46,10 +46,10 @@ C1 = [
     0.25 0.75
     -1 1
     ];
-% [ac1 ac2 f012 cur t0d w0 w1 w2] -> [t1 t2]
+% [heat ac1 ac2 f012 cur t0d w0 w1 w2] -> [t1 t2]
 D0 = [
-    0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0
     ];
 % [ac acd f012 cur t0d w0 w1 w2] -> [ac1 ac2 f012 cur t0d w0 w1 w2]
 % X = [
@@ -69,12 +69,12 @@ C = C1\C2;
 D = D0; % *X
 
 G = ss(A, B, C, D, ...
-    'InputName', {'ac1', 'ac2', 'f012', 'cur', 't0d', 'w0', 'w1', 'w2'}, ...
+    'InputName', {'heat', 'ac1', 'ac2', 'f012', 'cur', 't0d', 'w0', 'w1', 'w2'}, ...
     'OutputName', {'t1', 't2'}, ...
-    'InputDelay', [180, 180, 0, 0, 0, 0, 0, 0]);
+    'InputDelay', [0, 180, 180, 0, 0, 0, 0, 0, 0]);
 
 Gd = c2d(G, Ts);
-Gd = setmpcsignals(Gd, 'MV', [1 2 3 4], 'MD', [5 6 7 8]);
+Gd = setmpcsignals(Gd, 'MV', [1 2 3 4 5], 'MD', [6 7 8 9]);
 Gd = absorbDelay(Gd);
 
 end

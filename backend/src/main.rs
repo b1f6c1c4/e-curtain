@@ -25,7 +25,7 @@ extern crate lazy_static;
 extern crate log;
 extern crate notify;
 
-pub const LOG_LINE_LENGTH: usize = 384;
+pub const LOG_LINE_LENGTH: usize = 448;
 
 lazy_static! {
     // Log timestamp to position mapper
@@ -262,6 +262,7 @@ pub struct Current {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Other {
+    heat: f64,
     acm: f64,
     acp: f64,
     reg1: f64,
@@ -295,9 +296,9 @@ pub struct Other {
 pub struct LogLine {
     clk: u64,
     ar: LogAR,
-    res_u: [f64; 8],
+    res_u: [f64; 9],
     res_par: [f64; 2],
-    res_g: [f64; 7],
+    res_g: [f64; 8],
     res_q: [f64; 2],
     fr: OtherRecord,
 }
@@ -367,24 +368,25 @@ impl LogLine {
                 slept: self.fr.slept,
             },
             other: Other {
-                acm: self.res_g[2],
-                acp: self.res_g[3],
-                reg1: self.res_g[0],
-                reg2: self.res_g[1],
-                fan: self.res_g[4],
-                win: self.res_g[5],
-                cur: self.res_g[6],
+                heat: self.res_g[0],
+                acm: self.res_g[3],
+                acp: self.res_g[4],
+                reg1: self.res_g[1],
+                reg2: self.res_g[2],
+                fan: self.res_g[5],
+                win: self.res_g[6],
+                cur: self.res_g[7],
                 w0: self.ar.uw0,
                 w1: self.ar.uw1,
                 w2: self.ar.uw2,
                 curbl: self.ar.ucurb0,
                 curbu: self.ar.ucurb1,
-                f012: self.res_u[2],
-                t0d: self.res_u[3],
+                f012: self.res_u[3],
+                t0d: self.res_u[4],
                 f012bl: self.ar.uf012b0,
                 f012bu: self.ar.uf012b1,
-                ac1: self.res_u[0],
-                ac2: self.res_u[1],
+                ac1: self.res_u[1],
+                ac2: self.res_u[2],
                 t1m0: self.res_par[0],
                 Wsun: self.res_par[1],
                 qest: self.res_q[0],

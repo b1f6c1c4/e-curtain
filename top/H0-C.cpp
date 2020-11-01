@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     }() };
     std::cout << "Info: length of log entry is " << log_entry;
     std::cout << " / " << log_entry + log_padding << " bytes " << std::endl;
-    static_assert(log_entry + log_padding == 384);
+    static_assert(log_entry + log_padding == 448);
 
 
     nlohmann::json j;
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
     }
 
     udp_client<4> i_udp_client0{ host0, PORT };
-    udp_client<3> i_udp_client1{ host1, PORT };
+    udp_client<4> i_udp_client1{ host1, PORT };
 
     dumbac::model i_mpc;
     i_mpc.initialize();
@@ -195,14 +195,15 @@ int main(int argc, char *argv[]) {
         logger.flush();
 
         arr_t<4> g0;
-        arr_t<3> g1;
-        g0[2] = res.g[0]; // reg1
-        g0[3] = res.g[1]; // reg2
-        g0[0] = res.g[2]; // acm
-        g0[1] = res.g[3]; // acp
-        g1[2] = res.g[4]; // fan
-        g1[1] = res.g[5]; // win
-        g1[0] = res.g[6]; // cur
+        arr_t<4> g1;
+        g1[3] = res.g[0]; // heat
+        g0[2] = res.g[1]; // reg1
+        g0[3] = res.g[2]; // reg2
+        g0[0] = res.g[3]; // acm
+        g0[1] = res.g[4]; // acp
+        g1[2] = res.g[5]; // fan
+        g1[1] = res.g[6]; // win
+        g1[0] = res.g[7]; // cur
 
         i_udp_client0 << g0;
         i_udp_client1 << g1;

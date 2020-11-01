@@ -242,6 +242,7 @@ const Dashboard = ({ history, current, setOffset2 }) => {
       <Card width={isSmall ? '120px' : '100%'} height={{ max: isSmall ? '165px' : undefined }} background='light' margin='small' flex='grow'>
         <CardHeader pad='small' justify='center' background='dark'>F/C/H0 output</CardHeader>
         <CardBody direction={isSmall ? 'column' : 'row'} pad='small' wrap justify={isSmall ? 'start' : 'evenly'} overflow={isSmall ? 'scroll' : undefined}>
+          <Entry data={other} label='heat' />
           <Entry data={other} label='acm' format={{ forceSign: true }} />
           <Entry data={other} label='acp' />
           <Entry data={other} label='reg1' />
