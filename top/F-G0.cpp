@@ -147,20 +147,26 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
             case S_SLEEP:
             case S_RSNAP:
                 r[1] = g_sleep(ts);
-                if (ts < 480)
+                if (ts < 480) {
                     r[3] = 0.0, r[4] = 0.0; // f012b[lu]
-                else
-                    r[3] = 0.1, r[4] = 0.1; // f012b[lu]
-                if (ts < 480)
                     r[5] = r[6] = 0; // curb[lu]
-                else
+                    r[8] = 3.0; // w1
+                } else if (ts < 481) {
+                    r[3] = 0.18, r[4] = 0.18; // f012b[lu]
+                    r[5] = r[6] = 0.5; // curb[lu]
+                    r[8] = 3.0; // w1
+                } else {
+                    r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                     r[5] = r[6] = 1; // curb[lu]
+                    r[8] = std::min(1.5, 3.0 - 1.5 * (ts - 481) / 15); // w1
+                }
                 if (_state == S_SLEEP) {
-                    r[2] = r[1] - 0.5; // tp2
-                    r[7] = 1.0, r[8] = 3.0, r[9] = 0.0; // w[012]
+                    r[2] = r[1] - 1.0; // tp2
+                    r[7] = 1.0, r[9] = 3.0 - r[8]; // w[02]
                 } else { // if (_state == S_RSNAP)
                     r[2] = std::max(26.0, r[1] - 1.0); // tp2
-                    r[7] = 1.0, r[8] = 2.0, r[9] = 1.0; // w[012]
+                    r[8] = 2.0; // w1
+                    r[7] = 1.0, r[9] = 3.0 - r[8]; // w[02]
                 }
                 break;
         }
