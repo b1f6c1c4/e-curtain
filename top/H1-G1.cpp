@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 
     synchronizer<4> s_udp{ "s_udp", 0s, };
     synchronizer<4> s_gpio{ "s_gpio", 0s, true };
-    ir i_ir{ "/dev/lirc0" };
+    ir i_ir{ "/dev/gpiochip0" };
 
     {
         arr_t<4> sv{ 0.0, 0.0, 0.0, 0.0 };

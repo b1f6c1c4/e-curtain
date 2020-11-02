@@ -8,5 +8,5 @@ struct ir : public sink<12> {
     sink<12> &operator<<(const arr_t<12> &r);
 
 private:
-    std::string _cmd;
+    int _chipfd, _ofd;
 };
