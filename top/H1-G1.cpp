@@ -168,7 +168,10 @@ int main(int argc, char *argv[]) {
                     std::this_thread::sleep_for(0.5s);
                 }
         }
-        write(next[0] - std::max(prev[0], 0.0), std::max(next[1], 0.0) - std::max(prev[1], 0.0), next[2]);
+        auto d0 = next[0] - prev[0];
+        if (next[0] < 1e-3 && prev[0] >= 1e-3)
+            d0 = d0 - 0.1;
+        write(d0, next[1] - prev[1], next[2]);
         std::this_thread::sleep_for(1s);
         {
             std::unique_lock l{ mtx };
