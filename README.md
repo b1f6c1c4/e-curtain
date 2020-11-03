@@ -14,8 +14,9 @@
 - Automatic AC cooling/heating/ventilating/off mode selection
 - Automatic duct gate (cut-off) control
 - Automatic fan control (on/off)
+- Automatic space heater control using IR
 - Keyfobs for easy global mode selection
-- (TODO) Web-based dashboard for monitoring
+- Web-based dashboard for monitoring
 
 ## Hardware requirement
 
@@ -30,13 +31,30 @@
     - For duct gate control (x2)
 - Relay
     - For fan control
+- IR transmitter
+    - For space heater remote control
 - RF keyfob(s) with receiver
     - For global mode selection
-- Other stuff
-    - Power adapters
+- Other stuff (electrical)
+    - Power adapters (x3)
+    - Resistors, capacitors, transistors
     - Breadboards
     - Jump wires
     - Headers
+- Other stuff (mechanical)
+    - AC unit
+    - Space heater
+    - Curtain with pulleys
+    - Duct gate (x2)
+    - Lead screw, copper nut, shaft coupler
+    - Screws, washers, nuts
+    - Duct tapes
+- Auxilliary tools
+    - Oscilloscope and probes
+    - RF receiver
+    - Glue gun
+    - Screw driver
+    - Power drill
 
 ## Layout
 
@@ -48,6 +66,7 @@
     - Continuous rotation servo
     - Stepper with controller
     - Relay
+    - IR transmitter
 - `HOST2`: The living room controller, running `H2` and `H0-C`
     - Temperature sensor
 

@@ -298,13 +298,13 @@ int main(int argc, char *argv[]) {
                 break;
             case 1:
                 p = 180.0 - p;
-                m = 30.0;
+                m = 25.0;
                 break;
             case 0:
                 m = 60.0;
                 break;
             case -1:
-                m = 150.0;
+                m = 155.0;
                 break;
             case -2:
                 m = 180.0;
