@@ -6,7 +6,7 @@
 #include "dsp/persistent.hpp"
 #include "dsp/pwm.hpp"
 #include "dsp/overlay.hpp"
-#include "dsp/sleep.hpp"
+#include "dsp/pchip.hpp"
 #include "io/gpio.hpp"
 #include "sync.hpp"
 
@@ -116,37 +116,42 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
                 r[7] = 0.5, r[8] = 0.0, r[9] = 0.0; // w[012]
                 break;
             case S_NORMAL:
-                if (td >= 9.0 && td < 20.0) {
-                    r[1] = 26.0, r[2] = 26.0; // tp[12]
+                r[1] = _normal_tp1[td], r[2] = _normal_tp2[td]; // tp[12]
+                for (size_t i{ 1 }; i < prediction_horizon; i++) {
+                    auto v1{ _normal_tp1[td + static_cast<double>(i) * 10 / 60 / 60] + _offset };
+                    auto v2{ _normal_tp2[td + static_cast<double>(i) * 10 / 60 / 60] + _offset };
+                    auto ptr{ reinterpret_cast<float *>(&r[13 + i]) };
+                    ptr[0] = static_cast<float>(v1);
+                    ptr[1] = static_cast<float>(v2);
+                }
+                if (td >= 3.0 && td < 9.0) {
+                    r[3] = 0.0, r[4] = 0.2; // f012b[lu]
+                    r[5] = 0.0, r[6] = 1.0; // curb[lu]
+                    r[9] = 2.0 + (td - 3.0) / (9.0 - 3.0); // w2
+                } else if (td >= 9.0 && td < 20.0) {
                     r[3] = 0.0, r[4] = 1.0; // f012b[lu]
                     r[5] = 0.0, r[6] = 1.0; // curb[lu]
-                    r[7] = 1.0, r[8] = 0.0, r[9] = 3.0; // w[012]
+                    r[9] = 3.0; // w2
                 } else if (td >= 20.0 && td < 23.5) {
-                    r[1] = 26.0, r[2] = 25.5; // tp[12]
                     r[3] = 0.0, r[4] = 1.0; // f012b[lu]
                     r[5] = 0.0, r[6] = 1.0; // curb[lu]
-                    r[7] = 1.0, r[8] = 0.3, r[9] = 2.7; // w[012]
-                } else if (td >= 23.5 && td < 23.55) {
-                    r[1] = 26.0, r[2] = 25.5; // tp[12]
-                    r[3] = 1.0, r[4] = 1.0; // f012b[lu]
-                    r[5] = 0.0, r[6] = 0.0; // curb[lu]
-                    r[7] = 1.0, r[8] = 0.5, r[9] = 2.5; // w[012]
+                    r[9] = 3.0 - (td - 20.0) / (23.5 - 20.0); // w2
                 } else {
-                    r[1] = 26.0, r[2] = 26.0; // tp[12]
                     r[3] = 0.0, r[4] = 0.2; // f012b[lu]
                     r[5] = 0.0, r[6] = 0.0; // curb[lu]
-                    r[7] = 1.0, r[8] = 0.5, r[9] = 2.5; // w[012]
+                    r[9] = 2.0; // w2
                 }
+                r[7] = 1.0, r[8] = 3.0 - r[9]; // w[01]
                 break;
             case S_SNAP:
-                r[1] = 26.0, r[2] = 26.0; // tp[12]
+                r[1] = 26.0, r[2] = _normal_tp2[td]; // tp[12]
                 r[3] = 0.0, r[4] = 0.2; // f012b[lu]
                 r[5] = 0.5, r[6] = 0.5; // curb[lu]
                 r[7] = 1.0, r[8] = 1.0, r[9] = 2.0; // w[012]
                 break;
             case S_SLEEP:
             case S_RSNAP:
-                r[1] = g_sleep(ts);
+                r[1] = _sleep[ts], r[2] = _normal_tp2[td]; // tp[12]
                 if (ts < 480) {
                     r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                     r[5] = r[6] = 0; // curb[lu]
@@ -160,25 +165,40 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
                     r[5] = r[6] = 1; // curb[lu]
                     r[8] = std::min(1.5, 3.0 - 1.5 * (ts - 481) / 15); // w1
                 }
-                if (_state == S_SLEEP) {
-                    r[2] = r[1] - 1.0; // tp2
-                    r[7] = 1.0, r[9] = 3.0 - r[8]; // w[02]
-                } else { // if (_state == S_RSNAP)
-                    r[2] = std::max(26.0, r[1] - 1.0); // tp2
+                if (_state == S_RSNAP) {
                     r[8] = 2.0; // w1
-                    r[7] = 1.0, r[9] = 3.0 - r[8]; // w[02]
                 }
+                r[7] = 1.0, r[9] = 3.0 - r[8]; // w[02]
                 break;
         }
         r[1] += _offset, r[2] += _offset + _offset2;
         switch (_state) {
+            case S_NORMAL:
+                for (size_t i{ 1 }; i < prediction_horizon; i++) {
+                    auto v1{ _normal_tp1[td + static_cast<double>(i) * 10 / 60 / 60] + _offset };
+                    auto v2{ _normal_tp2[td + static_cast<double>(i) * 10 / 60 / 60] + _offset };
+                    auto ptr{ reinterpret_cast<float *>(&r[13 + i]) };
+                    ptr[0] = static_cast<float>(v1 + _offset);
+                    ptr[1] = static_cast<float>(v2 + _offset + _offset2);
+                }
+                break;
+            case S_SNAP:
+                for (size_t i{ 1 }; i < prediction_horizon; i++) {
+                    auto v1{ _normal_tp1[td + static_cast<double>(i) * 10 / 60 / 60] + _offset };
+                    auto v2{ _normal_tp2[td + static_cast<double>(i) * 10 / 60 / 60] + _offset };
+                    auto ptr{ reinterpret_cast<float *>(&r[13 + i]) };
+                    ptr[0] = static_cast<float>(v1 + _offset);
+                    ptr[1] = static_cast<float>(v2 + _offset + _offset2);
+                }
+                break;
             case S_SLEEP:
             case S_RSNAP:
                 for (size_t i{ 1 }; i < prediction_horizon; i++) {
-                    auto v{ g_sleep(ts + static_cast<double>(i) * 10 / 60) + _offset };
+                    auto v1{ _sleep[ts + static_cast<double>(i) * 10 / 60] + _offset };
+                    auto v2{ _normal_tp2[td + static_cast<double>(i) * 10 / 60 / 60] + _offset };
                     auto ptr{ reinterpret_cast<float *>(&r[13 + i]) };
-                    ptr[0] = static_cast<float>(v);
-                    ptr[1] = static_cast<float>(r[2] - r[1] + v);
+                    ptr[0] = static_cast<float>(v1 + _offset);
+                    ptr[1] = static_cast<float>(v2 + _offset + _offset2);
                 }
                 break;
             default:
@@ -218,6 +238,29 @@ private:
     double _offset{ 0.0 }, _offset2{ 0.0 };
     std::chrono::system_clock::time_point _slept;
     persistent<4> _persistent{ "F-G0.bin" };
+
+    cyc_pchip _normal_tp1{ 24, {
+            { 0.0, 26.0 },
+            { 3.0, 26.0 },
+            { 11.0, 26.0 },
+            { 14.0, 26.25 },
+            { 20.0, 25.75 },
+            { 23.5, 25.75 } } };
+    cyc_pchip _normal_tp2{ 24, {
+            { 0.0, 25.5 },
+            { 3.0, 26.0 },
+            { 11.0, 26.0 },
+            { 14.0, 26.25 },
+            { 20.0, 25.75 },
+            { 23.5, 25.75 } } };
+    pchip _sleep{ {
+            { 0, 28 },
+            { 40, 28 },
+            { 70, 27 },
+            { 160, 26 },
+            { 430, 23.5 },
+            { 450, 26 },
+            { 460, 26 } } };
 };
 
 int main(int argc, char *argv[]) {
