@@ -14,7 +14,7 @@ Gds.SamplingGrid = struct('t1m0', t1m0sg, 'Wsun', Wsunsg);
 
 Gdsam = mpc(makeACMdl(0, 0, Ts), Ts, 25, 2, struct(...
     'ManipulatedVariables', [0.2 0.3 0.2 0.02 0], ...
-    'ManipulatedVariablesRate', [0.1 0.3 0.1 0.3 0.2]));
+    'ManipulatedVariablesRate', [0 0.3 0.1 0.3 0.2]));
 conE = [
     1 0 0 0 0
     -1 0 0 0 0

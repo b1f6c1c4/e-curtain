@@ -113,7 +113,7 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
                 r[1] = 20.0, r[2] = 20.0; // tp[12]
                 r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                 r[5] = 0.5, r[6] = 0.5; // curb[lu]
-                r[7] = 0.5, r[8] = 0.0, r[9] = 0.0; // w[012]
+                r[7] = 0.5, r[8] = 0.1, r[9] = 0.1; // w[012]
                 break;
             case S_NORMAL:
                 r[1] = _normal_tp1[td], r[2] = _normal_tp2[td]; // tp[12]
@@ -157,13 +157,13 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
                     r[5] = r[6] = 0; // curb[lu]
                     r[8] = 3.0; // w1
                 } else if (ts < 481) {
-                    r[3] = 0.18, r[4] = 0.18; // f012b[lu]
-                    r[5] = r[6] = 0.5; // curb[lu]
+                    r[3] = 0.19, r[4] = 0.19; // f012b[lu]
+                    r[5] = r[6] = 0; // curb[lu]
                     r[8] = 3.0; // w1
                 } else {
                     r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                     r[5] = r[6] = 1; // curb[lu]
-                    r[8] = std::min(1.5, 3.0 - 1.5 * (ts - 481) / 15); // w1
+                    r[8] = std::max(1.5, 3.0 - 1.5 * (ts - 481) / 15); // w1
                 }
                 if (_state == S_RSNAP) {
                     r[8] = 2.0; // w1
@@ -258,7 +258,7 @@ private:
             { 40, 28 },
             { 70, 27 },
             { 160, 26 },
-            { 430, 23.5 },
+            { 430, 23.75 },
             { 450, 26 },
             { 460, 26 } } };
 };

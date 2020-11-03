@@ -144,13 +144,8 @@ int main(int argc, char *argv[]) {
 
         if (IS_INV(next[0]))
             next[0] = 0.5;
-        else if (next[0] > 1)
-            next[0] = 1;
-
         if (IS_INV(next[1]))
             next[1] = 0.5;
-        else if (next[1] > 1)
-            next[1] = 1;
 
         auto p = static_cast<int>(prev[3]);
         auto n = static_cast<int>(next[3]);
@@ -169,9 +164,12 @@ int main(int argc, char *argv[]) {
                 }
         }
         auto d0 = next[0] - prev[0];
-        if (next[0] < 1e-3 && prev[0] >= 1e-3)
-            d0 = d0 - 0.1;
-        write(d0, next[1] - prev[1], next[2]);
+        if (next[0] == 0 && prev[0] > 0)
+            d0 = d0 - 0.2;
+        else if (next[0] == 1 && prev[0] < 1)
+            d0 = d0 + 0.2;
+        auto d1 = next[1] - prev[1];
+        write(d0, d1, next[2]);
         std::this_thread::sleep_for(1s);
         {
             std::unique_lock l{ mtx };
