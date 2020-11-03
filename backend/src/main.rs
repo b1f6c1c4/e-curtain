@@ -203,6 +203,8 @@ pub struct Historical {
     tp1: f64, // desired temperature of room 1
     t2: f64,  // actual temperature of room 2
     tp2: f64, // desired temperature of room 2
+    h1: f64,  // actual humidity of room 1
+    h2: f64,  // actual humidity of room 2
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -336,6 +338,8 @@ impl LogLine {
             tp1: self.ar.utp0,
             t2: self.ar.uy1,
             tp2: self.ar.utp1,
+            h1: self.ar.h1,
+            h2: self.ar.h2,
         };
         res
     }

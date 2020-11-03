@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Card,
@@ -7,7 +7,6 @@ import {
   CardFooter,
   CardHeader,
   DataChart,
-  RangeSelector,
   ResponsiveContext,
   Text,
 } from 'grommet';
@@ -88,80 +87,113 @@ const Room = (props) => {
   );
 };
 
-const Chart = ({ data }) => {
-  const [range, setRange] = useState([0, 24]);
-  const onChange = (values) => {
-    setRange(values);
-  };
-  return (
-    <Box margin='small' align='center' justify='center'>
-      <Box fill='horizontal' align='center' justify='center'>
-        <DataChart
-          size={{ width: 'fill' }}
-          gap='none'
-          pad={{ horizontal: 'medium', vertical: 'small' }}
-          data={Array.isArray(data) ? data : []}
-          series={[{
+const TempChart = ({ data }) => (
+  <Box margin='small' align='center' justify='center'>
+    <Box fill='horizontal' align='center' justify='center'>
+      <DataChart
+        size={{ width: 'fill' }}
+        gap='none'
+        pad={{ horizontal: 'medium', vertical: 'small' }}
+        data={Array.isArray(data) ? data : []}
+        series={[{
+          property: 'dt',
+          render: (dt) => (
+            <Text margin={{ horizontal: 'xsmall' }}>
+              {dayjs(dt).format('HH:mm:ss')}
+            </Text>
+          ),
+        }, 't1', 't2', 'tp1', 'tp2']}
+        bounds='align'
+        chart={[{
+          property: 't1',
+          type: 'line',
+          thickness: 'hair',
+          color: 'room1',
+        }, {
+          property: 'tp1',
+          type: 'line',
+          thickness: 'xxsmall',
+          color: 'room1',
+          dash: true,
+        }, {
+          property: 't2',
+          type: 'line',
+          thickness: 'hair',
+          color: 'room2',
+        }, {
+          property: 'tp2',
+          type: 'line',
+          thickness: 'xxsmall',
+          color: 'room2',
+          dash: true,
+        }]}
+        axis={{
+          x: {
             property: 'dt',
-            render: (dt) => (
-              <Text margin={{ horizontal: 'xsmall' }}>
-                {dayjs(dt).format('HH:mm:ss')}
-              </Text>
-            ),
-          }, 't1', 't2', 'tp1', 'tp2']}
-          bounds='align'
-          chart={[{
+            granularity: 'coarse', // TODO: https://github.com/grommet/grommet/issues/4602
+          },
+          y: {
             property: 't1',
-            type: 'line',
-            thickness: 'hair',
-            color: 'room1',
-          }, {
-            property: 'tp1',
-            type: 'line',
-            thickness: 'xxsmall',
-            color: 'room1',
-            dash: true,
-          }, {
-            property: 't2',
-            type: 'line',
-            thickness: 'hair',
-            color: 'room2',
-          }, {
-            property: 'tp2',
-            type: 'line',
-            thickness: 'xxsmall',
-            color: 'room2',
-            dash: true,
-          }]}
-          axis={{
-            x: {
-              property: 'dt',
-              granularity: 'coarse', // TODO: https://github.com/grommet/grommet/issues/4602
-            },
-            y: {
-              property: 't1',
-              granularity: 'fine',
-            },
-          }}
-          guide={{
-            x: { granularity: 'medium' },
-            y: { granularity: 'fine' },
-          }}
-          detail
-        />
-      </Box>
-      <Box fill='horizontal' pad={{ left: 'small', right: 'small' }}>
-        <RangeSelector
-          direction='horizontal'
-          min={0}
-          max={24}
-          values={range}
-          onChange={onChange}
-        />
-      </Box>
+            granularity: 'fine',
+          },
+        }}
+        guide={{
+          x: { granularity: 'medium' },
+          y: { granularity: 'fine' },
+        }}
+        detail
+      />
     </Box>
-  );
-};
+  </Box>
+);
+
+const HumidChart = ({ data }) => (
+  <Box margin='small' align='center' justify='center'>
+    <Box fill='horizontal' align='center' justify='center'>
+      <DataChart
+        size={{ width: 'fill' }}
+        gap='none'
+        pad={{ horizontal: 'medium', vertical: 'small' }}
+        data={Array.isArray(data) ? data : []}
+        series={[{
+          property: 'dt',
+          render: (dt) => (
+            <Text margin={{ horizontal: 'xsmall' }}>
+              {dayjs(dt).format('HH:mm:ss')}
+            </Text>
+          ),
+        }, 'h1', 'h2']}
+        bounds='align'
+        chart={[{
+          property: 'h1',
+          type: 'line',
+          thickness: 'hair',
+          color: 'room1',
+        }, {
+          property: 'h2',
+          type: 'line',
+          thickness: 'hair',
+          color: 'room2',
+        }]}
+        axis={{
+          x: {
+            property: 'dt',
+            granularity: 'coarse', // TODO: https://github.com/grommet/grommet/issues/4602
+          },
+          y: {
+            property: 'h1',
+            granularity: 'fine',
+          },
+        }}
+        guide={{
+          x: { granularity: 'medium' },
+          y: { granularity: 'fine' },
+        }}
+        detail
+      />
+    </Box>
+  </Box>
+);
 
 const Entry = ({ data, label, format }) => (
   <Box direction='row' margin='xxsmall' gap='xxsmall'>
@@ -197,7 +229,10 @@ const Dashboard = ({ history, current, setOffset2 }) => {
     </Box>
   );
   const histSensor = (
-    <Chart data={history} />
+    <React.Fragment>
+      <TempChart data={history} />
+      <HumidChart data={history} />
+    </React.Fragment>
   );
   const state = _.get(current, 'f.state') || '(unknown)';
   let slept = _.get(current, 'f.slept') / 60;
@@ -282,7 +317,7 @@ const Dashboard = ({ history, current, setOffset2 }) => {
     );
   } else {
     obj = (
-      <Box direction='row' gap='small'>
+      <Box direction='row' gap='small' align='start'>
         <Box width='700px' flex>
           {currSensor}
           {histSensor}
