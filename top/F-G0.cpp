@@ -113,7 +113,7 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
                 r[1] = 20.0, r[2] = 20.0; // tp[12]
                 r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                 r[5] = 0.5, r[6] = 0.5; // curb[lu]
-                r[7] = 0.5, r[8] = 0.1, r[9] = 0.1; // w[012]
+                r[7] = 0.5, r[8] = 0.0, r[9] = 0.0; // w[012]
                 break;
             case S_NORMAL:
                 r[1] = _normal_tp1[td], r[2] = _normal_tp2[td]; // tp[12]
