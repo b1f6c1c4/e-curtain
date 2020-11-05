@@ -145,7 +145,7 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
                 break;
             case S_SNAP:
                 r[1] = 26.0, r[2] = _normal_tp2[td]; // tp[12]
-                r[3] = 0.0, r[4] = 0.2; // f012b[lu]
+                r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                 r[5] = 0.5, r[6] = 0.5; // curb[lu]
                 r[7] = 1.0, r[8] = 1.0, r[9] = 2.0; // w[012]
                 break;
