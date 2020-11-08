@@ -386,7 +386,7 @@ impl LogLine {
                 curbl: self.ar.ucurb0,
                 curbu: self.ar.ucurb1,
                 f012: self.res_u[3],
-                t0d: self.res_u[4],
+                t0d: self.res_u[5],
                 f012bl: self.ar.uf012b0,
                 f012bu: self.ar.uf012b1,
                 ac1: self.res_u[1],

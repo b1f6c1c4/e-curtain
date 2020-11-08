@@ -3,7 +3,7 @@
 Ts = 10;
 t1m0s = [-20 40];
 Wsuns = [0 1600];
-Gds = drss(49,2,9,length(t1m0s),length(Wsuns));
+Gds = drss(61,2,9,length(t1m0s),length(Wsuns));
 for i = 1:length(t1m0s)
     for j = 1:length(Wsuns)
         Gds(:,:,i,j) = makeACMdl(t1m0s(i), Wsuns(j), Ts);
