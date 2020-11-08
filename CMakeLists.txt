@@ -39,6 +39,6 @@ add_executable(F-G0 top/F-G0.cpp)
 add_executable(H1-G1 top/H1-G1.cpp)
 add_executable(H2 top/H2.cpp)
 add_executable(debugger top/debugger.cpp)
+add_executable(audit top/audit.cpp)
 
 target_link_libraries(H0-C nlohmann_json::nlohmann_json dumbac)
-
