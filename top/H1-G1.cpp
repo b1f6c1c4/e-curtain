@@ -91,7 +91,10 @@ int main(int argc, char *argv[]) {
 
     synchronizer<4> s_udp{ "s_udp", 0s, };
     synchronizer<4> s_gpio{ "s_gpio", 0s, true };
-    ir i_ir{ "/dev/gpiochip0" };
+
+    //                     ir  osc chk
+    //                         18  15
+    ir i_ir{ "/dev/gpiochip0", 24, 22 };
 
     {
         arr_t<4> sv{ 0.0, 0.0, 0.0, 0.0 };
@@ -130,16 +133,12 @@ int main(int argc, char *argv[]) {
 
     s_gpio.set_callback([&]() {
         arr_t<4> prev, next;
-        s_udp >> next;
-        s_gpio >> prev;
 
         {
             std::unique_lock l{ mtx };
-            while (prev == next || IS_INV(next[0])) {
-                cv.wait(l);
-                s_udp >> next;
-                s_gpio >> prev;
-            }
+            cv.wait(l);
+            s_udp >> next;
+            s_gpio >> prev;
         }
 
         if (IS_INV(next[0]))
@@ -147,29 +146,15 @@ int main(int argc, char *argv[]) {
         if (IS_INV(next[1]))
             next[1] = 0.5;
 
-        auto p = static_cast<int>(prev[3]);
-        auto n = static_cast<int>(next[3]);
-        if (!(0 <= n && n <= 3))
-            std::cout << "Invalid heat: " << next[3] << std::endl;
-        else if (p != n) {
-            if (p == 0 || n == 0) {
-                i_ir << arr_t<12>{ 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
-                std::this_thread::sleep_for(0.8s);
-                p = 3;
-            }
-            if (n != 0)
-                for (; n != p; p = (p + 1) % 3 + 1) {
-                    i_ir << arr_t<12>{ 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 };
-                    std::this_thread::sleep_for(0.5s);
-                }
-        }
+        i_ir << arr_t<1>{ next[3] };
         auto d0 = next[0] - prev[0];
         if (next[0] == 0 && prev[0] > 0)
             d0 = d0 - 0.2;
         else if (next[0] == 1 && prev[0] < 1)
             d0 = d0 + 0.2;
         auto d1 = next[1] - prev[1];
-        write(d0, d1, next[2]);
+        if (d0 != 0.0 || d1 != 0.0 || next[2] != prev[2])
+            write(d0, d1, next[2]);
         std::this_thread::sleep_for(1s);
         {
             std::unique_lock l{ mtx };

@@ -33,6 +33,8 @@
     - For fan control
 - IR transmitter
     - For space heater remote control
+- Photoresistor
+    - For space heater control feedback
 - RF keyfob(s) with receiver
     - For global mode selection
 - Other stuff (electrical)
@@ -67,6 +69,7 @@
     - Stepper with controller
     - Relay
     - IR transmitter
+    - Photoresistor
 - `HOST2`: The living room controller, running `H2` and `H0-C`
     - Temperature sensor
 
