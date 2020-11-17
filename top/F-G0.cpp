@@ -14,6 +14,7 @@ using namespace std::chrono_literals;
 
 const arr_t<4> g_ABCD{ 1.0, 1.0, 1.0, 1.0 };
 const arr_t<4> g_ABC{ 1.0, 1.0, 1.0, 0.0 };
+const arr_t<4> g_BCD{ 0.0, 1.0, 1.0, 1.0 };
 const arr_t<4> g_AB{ 1.0, 1.0, 0.0, 0.0 };
 const arr_t<4> g_BC{ 0.0, 1.0, 1.0, 0.0 };
 const arr_t<4> g_CD{ 0.0, 0.0, 1.0, 1.0 };
@@ -94,6 +95,7 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
                 break;
         }
         _forced_f012 ^= r == g_BC;
+        _disabled_f012 ^= r == g_BCD;
         arr_t<4> v{};
         v[0] = static_cast<double>(_state);
         v[1] = _offset;
@@ -180,6 +182,8 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
             r[3] = 1.0, r[4] = 1.0; // f012b[lu]
             r[5] = 1.0, r[6] = 1.0; // curb[lu]
             r[7] = 0.0, r[8] = 0.0, r[9] = 0.0; // w[012]
+        } else if (_disabled_f012) {
+            r[3] = 0.0, r[4] = 0.0; // f012b[lu]
         }
         r[1] += _offset, r[2] += _offset + _offset2;
         switch (_state) {
@@ -245,7 +249,7 @@ private:
         S_SLEEP = 3,
         S_RSNAP = 4,
     } _state{ S_NORMAL };
-    bool _forced_f012{ false };
+    bool _forced_f012{ false }, _disabled_f012{ false };
     double _offset{ 0.0 }, _offset2{ 0.0 };
     std::chrono::system_clock::time_point _slept;
     persistent<4> _persistent{ "F-G0.bin" };
