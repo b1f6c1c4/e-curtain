@@ -167,13 +167,13 @@ struct state_machine_t : public sink<4>, public source<sp_size> {
                 } else {
                     r[3] = 0.0, r[4] = 0.0; // f012b[lu]
                     r[5] = r[6] = 1; // curb[lu]
-                    r[9] = 1.5 * std::min(2.0, (ts - 481) / 15); // w2
+                    r[9] = 1.5 * std::min(1.0, (ts - 481) / 15); // w2
                 }
                 if (_state == S_RSNAP) {
                     r[8] = 2.0; // w1
                     r[9] = 1.5; // w2
                 } else {
-                    r[8] = 3.0; // w1
+                    r[8] = 3.0 - r[9]; // w1
                 }
                 r[7] = 1.0; // w0
                 break;
