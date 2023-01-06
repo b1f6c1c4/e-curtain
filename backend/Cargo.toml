@@ -19,7 +19,7 @@ crossbeam-channel = "0.4.0"
 notify = "4.0.12"
 lazy_static = "*"
 parking_lot = "*"
-tokio = { version = "1.8", features = ["full"] }
+tokio = { version = "1.18", features = ["full"] }
 strum = "0.19"
 strum_macros = "0.19"
 num_enum = "0.5"
